@@ -86,16 +86,18 @@ export async function POST(req: NextRequest) {
         // Run generation on Replicate
         // Using a placeholder model - replace with actual face-swap/enhancement model
         const output = await replicate.run(
-            'google/nano-banana',
+            'openai/gpt-image-1.5',
             {
                 input: {
-                    image_input: [faceProfile.imageUrl],
+                    input_images: [faceProfile.imageUrl],
                     prompt: prompt,
-                    aspect_ratio: '3:4'
+                    aspect_ratio: '3:2',
+                    quality: "medium"
                 },
             }
         );
-        const replicateImageUrl = (output as any).url();
+
+        const replicateImageUrl = (Array.isArray(output) ? output[0] : output).url();
 
         // Download image from Replicate and upload to R2
         const { buffer, contentType } = await downloadImage(replicateImageUrl);
