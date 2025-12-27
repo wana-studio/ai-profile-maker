@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
         // Run generation on Replicate
         // Using a placeholder model - replace with actual face-swap/enhancement model
         const output = await replicate.run(
-            'google/nano-banana-pro',
+            'google/nano-banana',
             {
                 input: {
                     image_input: [faceProfile.imageUrl],
