@@ -192,7 +192,7 @@ export default function PhotoDetailPage({ params }: { params: Promise<{ id: stri
             </div>
 
             {/* Bottom actions */}
-            <div className="fixed bottom-17 left-0 right-0 p-4 glass-strong border-t border-white/5 safe-area-bottom">
+            <div className="fixed bottom-17 left-0 right-0 p-4 glass-strong border-t border-white/5 safe-area-bottom max-w-md mx-auto">
                 <div className="flex gap-3">
                     <Button
                         variant="ghost"

@@ -179,7 +179,7 @@ export default function CreatePage() {
     }
 
     return (
-        <div className="min-h-screen pb-40">
+        <div className="min-h-screen max-w-md mx-auto pb-40">
             {/* Header */}
             <header className="sticky top-0 z-50 glass-strong safe-area-top">
                 <div className="flex items-center justify-between px-4 py-3">
@@ -295,7 +295,7 @@ export default function CreatePage() {
             </main>
 
             {/* Bottom actions */}
-            <div className="fixed bottom-17 left-0 right-0 p-4 glass-strong border-t border-white/5 safe-area-bottom">
+            <div className="fixed bottom-17 left-0 right-0 p-4 glass-strong border-t border-white/5 safe-area-bottom max-w-md mx-auto">
                 {step < 4 ? (
                     <Button
                         onClick={nextStep}

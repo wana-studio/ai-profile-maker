@@ -108,9 +108,6 @@ export default function HomePage() {
                     ))
                 )}
             </main>
-
-            {/* Floating create button - only show if signed in */}
-            {isSignedIn && <CreateButton />}
         </div>
     );
 }

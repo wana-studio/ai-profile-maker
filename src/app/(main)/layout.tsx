@@ -10,7 +10,7 @@ export default function MainLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen pb-20">
+        <div className="min-h-screen pb-20 max-w-md mx-auto">
             {children}
             <BottomNav />
             <SubscriptionModal />

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
         // Check generation limits for free users
         if (user.subscriptionTier === 'free') {
-            if (user.generationsThisMonth >= 5) {
+            if (user.generationsThisMonth >= 3) {
                 return NextResponse.json({
                     error: 'Generation limit reached',
                     upgrade: true
