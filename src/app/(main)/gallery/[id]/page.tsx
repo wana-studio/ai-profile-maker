@@ -85,12 +85,15 @@ export default function PhotoDetailPage({ params }: { params: Promise<{ id: stri
 
         setIsDownloading(true);
         try {
-            const response = await fetch(photo.imageUrl);
+            const filename = `${photo.title || 'photo'}-${photo.id}.jpg`;
+            const downloadUrl = `/api/download?url=${encodeURIComponent(photo.imageUrl)}&filename=${encodeURIComponent(filename)}`;
+
+            const response = await fetch(downloadUrl);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${photo.title || 'photo'}-${photo.id}.jpg`;
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
