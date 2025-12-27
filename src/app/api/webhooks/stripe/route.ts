@@ -42,16 +42,28 @@ export async function POST(req: Request) {
                         })
                         .where(eq(users.id, userId));
 
-                    // Create subscription record
+                    // Create or update subscription record (upsert)
                     const subscriptionItem = subscription.items.data[0];
-                    await db.insert(subscriptions).values({
-                        userId,
-                        stripeSubscriptionId: subscriptionId,
-                        stripePriceId: subscriptionItem.price.id,
-                        status: 'active',
-                        currentPeriodStart: new Date(subscriptionItem.current_period_start * 1000),
-                        currentPeriodEnd: new Date(subscriptionItem.current_period_end * 1000),
-                    });
+                    await db.insert(subscriptions)
+                        .values({
+                            userId,
+                            stripeSubscriptionId: subscriptionId,
+                            stripePriceId: subscriptionItem.price.id,
+                            status: 'active',
+                            currentPeriodStart: new Date(subscriptionItem.current_period_start * 1000),
+                            currentPeriodEnd: new Date(subscriptionItem.current_period_end * 1000),
+                        })
+                        .onConflictDoUpdate({
+                            target: subscriptions.userId,
+                            set: {
+                                stripeSubscriptionId: subscriptionId,
+                                stripePriceId: subscriptionItem.price.id,
+                                status: 'active',
+                                currentPeriodStart: new Date(subscriptionItem.current_period_start * 1000),
+                                currentPeriodEnd: new Date(subscriptionItem.current_period_end * 1000),
+                                updatedAt: new Date(),
+                            },
+                        });
                 }
                 break;
             }

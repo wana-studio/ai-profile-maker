@@ -17,7 +17,7 @@ import type { FaceProfile } from '@/lib/db/schema';
 
 export default function ProfilePage() {
     const { isSignedIn, isLoaded, user } = useUser();
-    const { tier, generationsRemaining } = useSubscriptionStore();
+    const { tier, generationsRemaining, setTier, setGenerationsRemaining } = useSubscriptionStore();
     const { profiles, setProfiles } = useFaceProfilesStore();
     const { openSubscriptionModal } = useModalStore();
 
@@ -28,6 +28,25 @@ export default function ProfilePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const isPro = tier === 'pro';
+
+    // Load subscription status when signed in
+    useEffect(() => {
+        if (isSignedIn) {
+            fetch('/api/subscription')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.tier) {
+                        setTier(data.tier);
+                    }
+                    if (data.generationsRemaining !== undefined) {
+                        setGenerationsRemaining(
+                            data.generationsRemaining === Infinity ? 999 : data.generationsRemaining
+                        );
+                    }
+                })
+                .catch(err => console.error('Failed to load subscription:', err));
+        }
+    }, [isSignedIn, setTier, setGenerationsRemaining]);
 
     // Load face profiles when signed in
     useEffect(() => {
