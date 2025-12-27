@@ -9,10 +9,11 @@ interface PhotoCardProps {
     photo: GeneratedPhoto;
     onTap?: () => void;
     onFavorite?: () => void;
+    onSave?: () => void;
     variant?: 'feed' | 'grid';
 }
 
-export function PhotoCard({ photo, onTap, onFavorite, variant = 'feed' }: PhotoCardProps) {
+export function PhotoCard({ photo, onTap, onFavorite, onSave, variant = 'feed' }: PhotoCardProps) {
     const categoryColors: Record<string, string> = {
         dating: 'bg-pink-500/20 text-pink-300',
         work: 'bg-blue-500/20 text-blue-300',
@@ -114,7 +115,10 @@ export function PhotoCard({ photo, onTap, onFavorite, variant = 'feed' }: PhotoC
                     <span className="text-sm text-muted-foreground">Favorite</span>
                 </button>
 
-                <button className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors touch-active">
+                <button
+                    onClick={onSave}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors touch-active"
+                >
                     <Download className="w-5 h-5 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">Save</span>
                 </button>

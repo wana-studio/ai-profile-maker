@@ -50,7 +50,7 @@ export default function HomePage() {
         : photos.filter(p => p.category === selectedCategory);
 
     return (
-        <div className="min-h-screen">
+        <div>
             {/* Header */}
             <header className="sticky top-0 z-50 glass-strong safe-area-top">
                 <div className="flex items-center justify-between px-4 py-3">
@@ -97,15 +97,35 @@ export default function HomePage() {
                 ) : filteredPhotos.length === 0 ? (
                     <EmptyState />
                 ) : (
-                    filteredPhotos.map((photo) => (
-                        <PhotoCard
-                            key={photo.id}
-                            photo={photo}
-                            variant="feed"
-                            onTap={() => {/* Navigate to detail */ }}
-                            onFavorite={() => toggleFavorite(photo.id)}
-                        />
-                    ))
+                    filteredPhotos.map((photo) => {
+                        const handleDownload = async () => {
+                            try {
+                                const response = await fetch(photo.imageUrl);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = `${photo.title || 'photo'}-${photo.id}.jpg`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(url);
+                            } catch (error) {
+                                console.error('Failed to download image:', error);
+                            }
+                        };
+
+                        return (
+                            <PhotoCard
+                                key={photo.id}
+                                photo={photo}
+                                variant="feed"
+                                onTap={() => {/* Navigate to detail */ }}
+                                onFavorite={() => toggleFavorite(photo.id)}
+                                onSave={handleDownload}
+                            />
+                        );
+                    })
                 )}
             </main>
         </div>

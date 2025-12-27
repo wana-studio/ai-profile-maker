@@ -72,8 +72,8 @@ export function FaceUpload({
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => onSelectProfile(profile)}
                                 className={`relative flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all ${selectedProfile?.id === profile.id
-                                        ? 'border-brand-purple glow-sm'
-                                        : 'border-transparent'
+                                    ? 'border-brand-purple glow-sm'
+                                    : 'border-transparent'
                                     }`}
                             >
                                 <img
@@ -135,9 +135,9 @@ export function FaceUpload({
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className={`aspect-square rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-4 transition-colors ${isDragActive
-                                    ? 'border-brand-purple bg-brand-purple/10'
-                                    : 'border-muted-foreground/30 hover:border-muted-foreground/50'
+                            className={`h-64 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-4 transition-colors ${isDragActive
+                                ? 'border-brand-purple bg-brand-purple/10'
+                                : 'border-muted-foreground/30 hover:border-muted-foreground/50'
                                 }`}
                         >
                             <div className="p-4 rounded-full gradient-primary opacity-80">
@@ -160,7 +160,7 @@ export function FaceUpload({
                 </AnimatePresence>
             </div>
 
-            {/* Tips */}
+            <span className="text-xl font-semibold my-4 block text-center">Tips for best result:</span>
             <div className="flex gap-4 p-4 rounded-2xl bg-secondary/50">
                 <div className="flex-1 text-center">
                     <span className="text-2xl">😊</span>

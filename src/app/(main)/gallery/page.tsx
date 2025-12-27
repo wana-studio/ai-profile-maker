@@ -51,7 +51,7 @@ export default function GalleryPage() {
         : photos.filter(p => p.category === selectedCategory);
 
     return (
-        <div className="min-h-screen">
+        <div>
             {/* Header */}
             <header className="sticky top-0 z-50 glass-strong safe-area-top">
                 <div className="px-4 py-3">

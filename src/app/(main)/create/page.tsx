@@ -77,7 +77,7 @@ export default function CreatePage() {
     // Show login required state if not authenticated
     if (isLoaded && !isSignedIn) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16">
+            <div className="flex flex-col items-center justify-center px-4 py-16">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -179,7 +179,7 @@ export default function CreatePage() {
     }
 
     return (
-        <div className="min-h-screen max-w-md mx-auto pb-40">
+        <div className="max-w-md mx-auto pb-30">
             {/* Header */}
             <header className="sticky top-0 z-50 glass-strong safe-area-top">
                 <div className="flex items-center justify-between px-4 py-3">
@@ -276,7 +276,7 @@ export default function CreatePage() {
                             </p>
 
                             {/* Preview */}
-                            <div className="relative mx-auto w-48 h-64 rounded-2xl overflow-hidden mb-8">
+                            <div className="relative mx-auto w-full rounded-2xl overflow-hidden mb-8">
                                 {selectedFaceProfile && (
                                     <img
                                         src={selectedFaceProfile.imageUrl}
@@ -295,7 +295,7 @@ export default function CreatePage() {
             </main>
 
             {/* Bottom actions */}
-            <div className="fixed bottom-17 left-0 right-0 p-4 glass-strong border-t border-white/5 safe-area-bottom max-w-md mx-auto">
+            <div className="fixed bottom-18 left-0 right-0 p-4 safe-area-bottom max-w-md mx-auto">
                 {step < 4 ? (
                     <Button
                         onClick={nextStep}

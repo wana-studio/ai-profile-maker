@@ -1,9 +1,9 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { useUser, SignInButton } from '@clerk/nextjs';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Heart, Download, RefreshCw, Sparkles, Share2, LogIn, Image } from 'lucide-react';
+import { ArrowLeft, Heart, Download, RefreshCw, Sparkles, Share2, LogIn, Image, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatCard } from '@/components/gallery/stat-card';
@@ -78,6 +78,29 @@ export default function PhotoDetailPage({ params }: { params: Promise<{ id: stri
 
     // Find photo in store
     const photo = photos.find(p => p.id === id);
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const handleDownload = async () => {
+        if (!photo) return;
+
+        setIsDownloading(true);
+        try {
+            const response = await fetch(photo.imageUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${photo.title || 'photo'}-${photo.id}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Failed to download image:', error);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     // Photo not found
     if (!photo) {
@@ -192,7 +215,7 @@ export default function PhotoDetailPage({ params }: { params: Promise<{ id: stri
             </div>
 
             {/* Bottom actions */}
-            <div className="fixed bottom-17 left-0 right-0 p-4 glass-strong border-t border-white/5 safe-area-bottom max-w-md mx-auto">
+            <div className="fixed bottom-18 left-0 right-0 p-4 safe-area-bottom max-w-md mx-auto">
                 <div className="flex gap-3">
                     <Button
                         variant="ghost"
@@ -208,8 +231,14 @@ export default function PhotoDetailPage({ params }: { params: Promise<{ id: stri
                         variant="ghost"
                         size="icon"
                         className="h-14 w-14 rounded-2xl bg-secondary"
+                        onClick={handleDownload}
+                        disabled={isDownloading}
                     >
-                        <Download className="w-6 h-6 text-white" />
+                        {isDownloading ? (
+                            <Loader2 className="w-6 h-6 text-white animate-spin" />
+                        ) : (
+                            <Download className="w-6 h-6 text-white" />
+                        )}
                     </Button>
                     <Button
                         variant="ghost"
