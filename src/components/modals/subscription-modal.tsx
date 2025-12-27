@@ -42,7 +42,7 @@ export function SubscriptionModal({ onSubscribe }: SubscriptionModalProps) {
                     >
                         <div className="relative overflow-hidden rounded-3xl glass-strong border border-white/10">
                             {/* Gradient decoration */}
-                            <div className="absolute top-0 left-0 right-0 h-32 gradient-primary opacity-30" />
+                            <div className="absolute top-0 left-0 right-0 h-35 gradient-primary opacity-30" />
 
                             {/* Close button */}
                             <button
