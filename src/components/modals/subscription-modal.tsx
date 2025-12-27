@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Sparkles, Zap, Crown, Shield } from 'lucide-react';
+import { X, Check, Sparkles, Zap, Crown, Shield, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useModalStore } from '@/lib/stores';
 
@@ -12,12 +13,35 @@ const proFeatures = [
     { icon: Shield, label: 'Priority processing', description: 'Faster generation times' },
 ];
 
-interface SubscriptionModalProps {
-    onSubscribe?: () => void;
-}
-
-export function SubscriptionModal({ onSubscribe }: SubscriptionModalProps) {
+export function SubscriptionModal() {
     const { isSubscriptionModalOpen, closeSubscriptionModal } = useModalStore();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubscribe = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create checkout session');
+            }
+
+            const data = await response.json();
+
+            if (data.url) {
+                // Redirect to Stripe Checkout
+                window.location.href = data.url;
+            } else {
+                throw new Error('No checkout URL returned');
+            }
+        } catch (error) {
+            console.error('Subscription error:', error);
+            alert('Failed to start subscription. Please try again.');
+            setIsLoading(false);
+        }
+    };
 
     return (
         <AnimatePresence>
@@ -47,7 +71,8 @@ export function SubscriptionModal({ onSubscribe }: SubscriptionModalProps) {
                             {/* Close button */}
                             <button
                                 onClick={closeSubscriptionModal}
-                                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+                                disabled={isLoading}
+                                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10 disabled:opacity-50"
                             >
                                 <X className="w-5 h-5 text-white" />
                             </button>
@@ -103,10 +128,18 @@ export function SubscriptionModal({ onSubscribe }: SubscriptionModalProps) {
 
                                 {/* CTA */}
                                 <Button
-                                    onClick={onSubscribe}
-                                    className="w-full h-14 text-lg font-semibold gradient-primary hover:opacity-90 transition-opacity"
+                                    onClick={handleSubscribe}
+                                    disabled={isLoading}
+                                    className="w-full h-14 text-lg font-semibold gradient-primary hover:opacity-90 transition-opacity disabled:opacity-70"
                                 >
-                                    Start Pro Trial
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        'Start Pro Trial'
+                                    )}
                                 </Button>
 
                                 <p className="text-center text-xs text-muted-foreground mt-4">
