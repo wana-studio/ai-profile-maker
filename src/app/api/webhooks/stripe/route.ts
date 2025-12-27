@@ -4,7 +4,7 @@ import { db, users, subscriptions } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-04-30.basil',
+    apiVersion: '2025-12-15.clover',
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -43,13 +43,14 @@ export async function POST(req: Request) {
                         .where(eq(users.id, userId));
 
                     // Create subscription record
+                    const subscriptionItem = subscription.items.data[0];
                     await db.insert(subscriptions).values({
                         userId,
                         stripeSubscriptionId: subscriptionId,
-                        stripePriceId: subscription.items.data[0].price.id,
+                        stripePriceId: subscriptionItem.price.id,
                         status: 'active',
-                        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-                        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                        currentPeriodStart: new Date(subscriptionItem.current_period_start * 1000),
+                        currentPeriodEnd: new Date(subscriptionItem.current_period_end * 1000),
                     });
                 }
                 break;
@@ -57,12 +58,13 @@ export async function POST(req: Request) {
 
             case 'customer.subscription.updated': {
                 const subscription = event.data.object as Stripe.Subscription;
+                const subscriptionItem = subscription.items.data[0];
 
                 await db.update(subscriptions)
                     .set({
                         status: subscription.status as 'active' | 'canceled' | 'past_due' | 'incomplete',
-                        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-                        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                        currentPeriodStart: new Date(subscriptionItem.current_period_start * 1000),
+                        currentPeriodEnd: new Date(subscriptionItem.current_period_end * 1000),
                         cancelAtPeriodEnd: subscription.cancel_at_period_end,
                         updatedAt: new Date(),
                     })
@@ -99,7 +101,7 @@ export async function POST(req: Request) {
 
             case 'invoice.payment_failed': {
                 const invoice = event.data.object as Stripe.Invoice;
-                const subscriptionId = invoice.subscription as string;
+                const subscriptionId = invoice.parent?.subscription_details?.subscription as string | undefined;
 
                 if (subscriptionId) {
                     await db.update(subscriptions)
