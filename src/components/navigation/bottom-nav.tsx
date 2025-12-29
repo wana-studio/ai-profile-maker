@@ -6,9 +6,8 @@ import { motion } from 'framer-motion';
 import { Home, Sparkles, Image, User } from 'lucide-react';
 
 const tabs = [
-    { id: 'home', label: 'Home', icon: Home, href: '/' },
+    { id: 'gallery', label: 'Gallery', icon: Image, href: '/' },
     { id: 'create', label: 'Create', icon: Sparkles, href: '/create' },
-    { id: 'gallery', label: 'Gallery', icon: Image, href: '/gallery' },
     { id: 'profile', label: 'Profile', icon: User, href: '/profile' },
 ];
 
@@ -16,11 +15,10 @@ export function BottomNav() {
     const pathname = usePathname();
 
     const getActiveTab = () => {
-        if (pathname === '/') return 'home';
+        if (pathname === "/" || pathname.startsWith("/gallery")) return 'gallery';
         if (pathname.startsWith('/create')) return 'create';
-        if (pathname.startsWith('/gallery')) return 'gallery';
         if (pathname.startsWith('/profile')) return 'profile';
-        return 'home';
+        return 'gallery';
     };
 
     const activeTab = getActiveTab();

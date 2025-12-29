@@ -46,28 +46,6 @@ export function VibeControls({
                 </p>
             </div>
 
-            {/* Energy Slider */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-white">Energy Level</h3>
-                    <Badge variant="secondary" className="text-xs">
-                        {energyLevel < 33 ? 'Soft' : energyLevel < 66 ? 'Balanced' : 'Bold'}
-                    </Badge>
-                </div>
-                <div className="space-y-2">
-                    <Slider
-                        value={[energyLevel]}
-                        onValueChange={([value]) => onEnergyChange(value)}
-                        max={100}
-                        step={1}
-                        className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Soft & Approachable</span>
-                        <span>Bold & Confident</span>
-                    </div>
-                </div>
-            </div>
 
             {/* Realism Options */}
             <div className="space-y-3">
@@ -79,8 +57,8 @@ export function VibeControls({
                             whileTap={{ scale: 0.98 }}
                             onClick={() => onRealismChange(option.value)}
                             className={`w-full p-4 rounded-2xl text-left transition-all ${realismLevel === option.value
-                                    ? 'bg-brand-purple/20 border border-brand-purple'
-                                    : 'bg-secondary border border-transparent hover:border-muted-foreground/30'
+                                ? 'bg-brand-purple/20 border border-brand-purple'
+                                : 'bg-secondary border border-transparent hover:border-muted-foreground/30'
                                 }`}
                         >
                             <div className="flex items-center justify-between">
@@ -97,8 +75,8 @@ export function VibeControls({
                                 </div>
                                 <div
                                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${realismLevel === option.value
-                                            ? 'border-brand-purple bg-brand-purple'
-                                            : 'border-muted-foreground'
+                                        ? 'border-brand-purple bg-brand-purple'
+                                        : 'border-muted-foreground'
                                         }`}
                                 >
                                     {realismLevel === option.value && (
@@ -134,17 +112,6 @@ export function VibeControls({
                 <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 rounded-xl bg-secondary">
                         <div>
-                            <p className="text-sm font-medium text-white">Change outfit</p>
-                            <p className="text-xs text-muted-foreground">AI picks a fitting outfit</p>
-                        </div>
-                        <Switch
-                            checked={options.changeOutfit}
-                            onCheckedChange={(checked) => onOptionChange('changeOutfit', checked)}
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-secondary">
-                        <div>
                             <p className="text-sm font-medium text-white">Change hairstyle</p>
                             <p className="text-xs text-muted-foreground">Try a new look</p>
                         </div>
@@ -162,17 +129,6 @@ export function VibeControls({
                         <Switch
                             checked={options.addGlasses}
                             onCheckedChange={(checked) => onOptionChange('addGlasses', checked)}
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-secondary">
-                        <div>
-                            <p className="text-sm font-medium text-white">Add beard</p>
-                            <p className="text-xs text-muted-foreground">Facial hair styling</p>
-                        </div>
-                        <Switch
-                            checked={options.addBeard}
-                            onCheckedChange={(checked) => onOptionChange('addBeard', checked)}
                         />
                     </div>
                 </div>
