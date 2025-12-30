@@ -1,14 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Image, Sparkles, User } from "lucide-react";
+import LiquidGlass from "liquid-glass-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { GalleryIcon, PlusCircleIcon, UserIcon } from "../ui/icons";
+import { cn } from "@/lib/utils";
 
 const tabs = [
-  { id: "gallery", label: "Gallery", icon: Image, href: "/" },
-  { id: "create", label: "Create", icon: Sparkles, href: "/create" },
-  { id: "profile", label: "Profile", icon: User, href: "/profile" },
+  { id: "gallery", label: "Gallery", icon: GalleryIcon, href: "/" },
+  { id: "create", label: "Create", icon: PlusCircleIcon, href: "/create" },
+  { id: "profile", label: "Profile", icon: UserIcon, href: "/profile" },
 ];
 
 export function BottomNav() {
@@ -24,8 +26,19 @@ export function BottomNav() {
   const activeTab = getActiveTab();
 
   return (
-    <nav className="max-w-md mx-auto fixed bottom-0 left-0 right-0 z-50 safe-area-bottom py-5! flex flex-col items-center justify-center">
-      <div className="liquid-glass grid grid-cols-3 w-full max-w-[260px] p-1 rounded-full">
+    <LiquidGlass
+      padding="4px"
+      elasticity={0}
+      cornerRadius={99}
+      blurAmount={0.2}
+      style={{
+        position: "fixed",
+        bottom: "20px",
+        left: "50%",
+      }}
+      className="glass-shadow rounded-full"
+    >
+      <div className="grid grid-cols-3 p-1 rounded-full w-full">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -34,43 +47,41 @@ export function BottomNav() {
             <Link
               key={tab.id}
               href={tab.href}
-              className="relative flex flex-col items-center justify-center touch-active rounded-full py-1.5"
+              className="relative w-[90px] flex flex-col items-center justify-center touch-active rounded-full py-2"
             >
               {isActive && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 rounded-full gradient-primary w-full h-full"
+                  className="absolute inset-0 rounded-full bg-foreground/20 w-full h-full"
                   transition={{ type: "spring", duration: 0.5 }}
                 />
               )}
-              <div className="relative flex flex-col items-center justify-center">
-                <motion.div
-                  animate={{
-                    scale: isActive ? 1.1 : 1,
-                  }}
-                  transition={{ type: "spring", duration: 0.3 }}
-                >
-                  <Icon
-                    size={22}
-                    className={
-                      isActive ? "text-white" : "text-muted-foreground"
-                    }
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                </motion.div>
+              <motion.div
+                animate={{
+                  scale: isActive ? 1.1 : 1,
+                }}
+                transition={{ type: "spring", duration: 0.3 }}
+                className="flex flex-col items-center justify-center"
+              >
+                <Icon
+                  className={cn(
+                    isActive ? "text-foreground" : "text-foreground/50",
+                    "size-[22px]"
+                  )}
+                />
 
                 <span
-                  className={`text-[10px] font-medium transition-colors ${
-                    isActive ? "text-white" : "text-muted-foreground"
+                  className={`text-[10px] font-semibold transition-colors mt-1 ${
+                    isActive ? "text-foreground" : "text-foreground/50"
                   }`}
                 >
                   {tab.label}
                 </span>
-              </div>
+              </motion.div>
             </Link>
           );
         })}
       </div>
-    </nav>
+    </LiquidGlass>
   );
 }

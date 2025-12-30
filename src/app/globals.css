@@ -5,32 +5,32 @@
 
 /* SF Rounded Font */
 @font-face {
-  font-family: 'SF Rounded';
-  src: url('/fonts/SF-Compact-Rounded-Regular.woff2') format('woff2');
+  font-family: "SF Rounded";
+  src: url("/fonts/SF-Compact-Rounded-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'SF Rounded';
-  src: url('/fonts/SF-Compact-Rounded-Medium.woff2') format('woff2');
+  font-family: "SF Rounded";
+  src: url("/fonts/SF-Compact-Rounded-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'SF Rounded';
-  src: url('/fonts/SF-Compact-Rounded-Semibold.woff2') format('woff2');
+  font-family: "SF Rounded";
+  src: url("/fonts/SF-Compact-Rounded-Semibold.woff2") format("woff2");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'SF Rounded';
-  src: url('/fonts/SF-Compact-Rounded-Bold.woff2') format('woff2');
+  font-family: "SF Rounded";
+  src: url("/fonts/SF-Compact-Rounded-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -39,7 +39,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'SF Rounded', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: "SF Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
   --font-mono: var(--font-geist-mono);
 
   /* Custom vibrant colors */
@@ -109,6 +110,15 @@
   --input: oklch(0.2 0.03 280);
   --ring: oklch(0.65 0.28 300);
 
+  --c-glass: #2d2c2c;
+  --c-light: #9b9a9a;
+  --c-dark: #565555;
+
+  --glass-reflex-dark: 1;
+  --glass-reflex-light: 1;
+
+  --saturation: 150%;
+
   /* Vibrant gradient colors */
   --brand-purple: oklch(0.55 0.28 290);
   --brand-pink: oklch(0.65 0.25 340);
@@ -140,41 +150,101 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'SF Rounded', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: "SF Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, sans-serif;
   }
+}
+
+@utility glass-shadow {
+  background-color: color-mix(in srgb, var(--c-glass) 12%, transparent);
+  padding: 1px;
+  box-shadow: inset 0 0 0 1px
+      color-mix(
+        in srgb,
+        var(--c-light) calc(var(--glass-reflex-light) * 10%),
+        transparent
+      ),
+    inset 1.8px 3px 0px -2px color-mix(in srgb, var(--c-light)
+          calc(var(--glass-reflex-light) * 90%), transparent),
+    inset -2px -2px 0px -2px color-mix(in srgb, var(--c-light)
+          calc(var(--glass-reflex-light) * 80%), transparent),
+    inset -3px -8px 1px -6px color-mix(in srgb, var(--c-light)
+          calc(var(--glass-reflex-light) * 60%), transparent),
+    inset -0.3px -1px 4px 0px
+      color-mix(
+        in srgb,
+        var(--c-dark) calc(var(--glass-reflex-dark) * 12%),
+        transparent
+      ),
+    inset -1.5px 2.5px 0px -2px
+      color-mix(
+        in srgb,
+        var(--c-dark) calc(var(--glass-reflex-dark) * 20%),
+        transparent
+      ),
+    inset 0px 3px 4px -2px color-mix(in srgb, var(--c-dark)
+          calc(var(--glass-reflex-dark) * 20%), transparent),
+    inset 2px -6.5px 1px -4px
+      color-mix(
+        in srgb,
+        var(--c-dark) calc(var(--glass-reflex-dark) * 10%),
+        transparent
+      ),
+    0px 1px 5px 0px
+      color-mix(
+        in srgb,
+        var(--c-dark) calc(var(--glass-reflex-dark) * 10%),
+        transparent
+      ),
+    0px 6px 16px 0px
+      color-mix(
+        in srgb,
+        var(--c-dark) calc(var(--glass-reflex-dark) * 8%),
+        transparent
+      );
 }
 
 /* Custom utility classes */
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(135deg,
-        oklch(0.55 0.28 290) 0%,
-        oklch(0.65 0.25 340) 50%,
-        oklch(0.55 0.22 250) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.55 0.28 290) 0%,
+      oklch(0.65 0.25 340) 50%,
+      oklch(0.55 0.22 250) 100%
+    );
   }
 
   .gradient-secondary {
-    background: linear-gradient(135deg,
-        oklch(0.6 0.28 305) 0%,
-        oklch(0.65 0.28 290) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.6 0.28 305) 0%,
+      oklch(0.65 0.28 290) 100%
+    );
   }
 
   .gradient-accent {
-    background: linear-gradient(135deg,
-        oklch(0.7 0.16 200) 0%,
-        oklch(0.55 0.22 250) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.7 0.16 200) 0%,
+      oklch(0.55 0.22 250) 100%
+    );
   }
 
   .gradient-warm {
-    background: linear-gradient(135deg,
-        oklch(0.65 0.25 340) 0%,
-        oklch(0.7 0.2 30) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.65 0.25 340) 0%,
+      oklch(0.7 0.2 30) 100%
+    );
   }
 
   .gradient-card {
-    background: linear-gradient(180deg,
-        oklch(0.15 0.03 280) 0%,
-        oklch(0.1 0.02 280) 100%);
+    background: linear-gradient(
+      180deg,
+      oklch(0.15 0.03 280) 0%,
+      oklch(0.1 0.02 280) 100%
+    );
   }
 
   .glass {
@@ -190,20 +260,24 @@
   }
 
   .text-gradient {
-    background: linear-gradient(135deg,
-        oklch(0.85 0.2 300) 0%,
-        oklch(0.8 0.18 340) 50%,
-        oklch(0.75 0.15 250) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.85 0.2 300) 0%,
+      oklch(0.8 0.18 340) 50%,
+      oklch(0.75 0.15 250) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .shimmer {
-    background: linear-gradient(90deg,
-        oklch(0.15 0.03 280) 0%,
-        oklch(0.25 0.05 300) 50%,
-        oklch(0.15 0.03 280) 100%);
+    background: linear-gradient(
+      90deg,
+      oklch(0.15 0.03 280) 0%,
+      oklch(0.25 0.05 300) 50%,
+      oklch(0.15 0.03 280) 100%
+    );
     background-size: 200% 100%;
     animation: shimmer 2s ease-in-out infinite;
   }
@@ -218,8 +292,7 @@
   }
 
   .card-shadow {
-    box-shadow: 0 4px 20px oklch(0 0 0 / 0.3),
-      0 8px 40px oklch(0 0 0 / 0.2);
+    box-shadow: 0 4px 20px oklch(0 0 0 / 0.3), 0 8px 40px oklch(0 0 0 / 0.2);
   }
 
   .safe-area-bottom {
@@ -242,7 +315,6 @@
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
     box-shadow: 0 0 30px oklch(0.55 0.28 290 / 0.4),
@@ -256,7 +328,6 @@
 }
 
 @keyframes float {
-
   0%,
   100% {
     transform: translateY(0);
