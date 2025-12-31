@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Sparkles, Zap, Crown, Shield, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useModalStore } from "@/lib/stores";
+import { useModalStore, useSubscriptionStore } from "@/lib/stores";
+import { trackEvent, usePostHog } from "@/lib/posthog";
 
 const proFeatures = [
   {
@@ -31,10 +32,29 @@ const proFeatures = [
 
 export function SubscriptionModal() {
   const { isSubscriptionModalOpen, closeSubscriptionModal } = useModalStore();
+  const { tier, generationsRemaining } = useSubscriptionStore();
+  const posthog = usePostHog();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Track modal opened
+  useEffect(() => {
+    if (isSubscriptionModalOpen) {
+      trackEvent("subscription_modal_opened", {
+        currentTier: tier,
+        generationsRemaining,
+      });
+    }
+  }, [isSubscriptionModalOpen, posthog, tier, generationsRemaining]);
 
   const handleSubscribe = async () => {
     setIsLoading(true);
+
+    // Track checkout initiated
+    trackEvent("subscription_checkout_initiated", {
+      currentTier: tier,
+      generationsRemaining,
+    });
+
     try {
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
@@ -54,9 +74,24 @@ export function SubscriptionModal() {
       }
     } catch (error) {
       console.error("Subscription error:", error);
+
+      // Track checkout failed
+      trackEvent("subscription_checkout_failed", {
+        currentTier: tier,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+
       alert("Failed to start subscription. Please try again.");
       setIsLoading(false);
     }
+  };
+
+  const handleClose = () => {
+    trackEvent("subscription_modal_closed", {
+      currentTier: tier,
+      generationsRemaining,
+    });
+    closeSubscriptionModal();
   };
 
   return (
@@ -68,7 +103,7 @@ export function SubscriptionModal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={closeSubscriptionModal}
+            onClick={handleClose}
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
           />
 
@@ -86,7 +121,7 @@ export function SubscriptionModal() {
 
               {/* Close button */}
               <button
-                onClick={closeSubscriptionModal}
+                onClick={handleClose}
                 disabled={isLoading}
                 className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10 disabled:opacity-50"
               >

@@ -17,6 +17,7 @@ import {
 } from "@/lib/stores";
 import { useRouter } from "next/navigation";
 import type { Style } from "@/lib/db/schema";
+import { trackEvent, usePostHog } from "@/lib/posthog";
 
 const stepTitles = ["Face", "Choose Your Style", "Adjust the vibe", "Generate"];
 
@@ -26,6 +27,7 @@ export default function CreatePage() {
   const { tier } = useSubscriptionStore();
   const { profiles, setProfiles } = useFaceProfilesStore();
   const { openSubscriptionModal } = useModalStore();
+  const posthog = usePostHog();
   const {
     step,
     selectedFaceProfile,
@@ -126,6 +128,12 @@ export default function CreatePage() {
 
       const data = await response.json();
       setSelectedFaceProfile(data.profile);
+
+      // Track face upload event
+      trackEvent("face_uploaded", {
+        faceProfileId: data.profile.id,
+        tier,
+      });
     } catch (error) {
       console.error("Upload error:", error);
       alert("Failed to upload face profile. Please try again.");
@@ -134,6 +142,17 @@ export default function CreatePage() {
 
   const handleGenerate = async () => {
     setIsGenerating(true);
+
+    // Track generation initiated
+    trackEvent("generation_initiated", {
+      faceProfileId: selectedFaceProfile?.id,
+      styleId: selectedStyle?.id,
+      styleName: selectedStyle?.name,
+      energyLevel,
+      realismLevel,
+      options,
+      tier,
+    });
 
     try {
       const response = await fetch("/api/generate", {
@@ -153,8 +172,28 @@ export default function CreatePage() {
         if (error.upgrade) {
           openSubscriptionModal();
         }
+
+        // Track generation failed
+        trackEvent("generation_failed", {
+          faceProfileId: selectedFaceProfile?.id,
+          styleId: selectedStyle?.id,
+          styleName: selectedStyle?.name,
+          error: error.error,
+          tier,
+        });
+
         throw new Error(error.error || "Generation failed");
       }
+
+      // Track generation completed
+      trackEvent("generation_completed", {
+        faceProfileId: selectedFaceProfile?.id,
+        styleId: selectedStyle?.id,
+        styleName: selectedStyle?.name,
+        energyLevel,
+        realismLevel,
+        tier,
+      });
 
       // Navigate to gallery on success
       router.push("/");
@@ -229,7 +268,15 @@ export default function CreatePage() {
               <FaceUpload
                 existingProfiles={profiles}
                 selectedProfile={selectedFaceProfile}
-                onSelectProfile={setSelectedFaceProfile}
+                onSelectProfile={(profile) => {
+                  setSelectedFaceProfile(profile);
+                  if (profile) {
+                    trackEvent("face_profile_selected", {
+                      faceProfileId: profile.id,
+                      tier,
+                    });
+                  }
+                }}
                 onUpload={handleUpload}
               />
             </motion.div>
@@ -245,8 +292,25 @@ export default function CreatePage() {
               <StyleGrid
                 styles={styles}
                 selectedStyle={selectedStyle}
-                onSelectStyle={setSelectedStyle}
-                onLockedStyleTap={() => openSubscriptionModal()}
+                onSelectStyle={(style) => {
+                  setSelectedStyle(style);
+                  trackEvent("style_selected", {
+                    styleId: style.id,
+                    styleName: style.name,
+                    styleCategory: style.category,
+                    isPremium: style.isPremium,
+                    tier,
+                  });
+                }}
+                onLockedStyleTap={(style) => {
+                  trackEvent("premium_style_blocked", {
+                    styleId: style.id,
+                    styleName: style.name,
+                    styleCategory: style.category,
+                    tier,
+                  });
+                  openSubscriptionModal();
+                }}
                 isPro={isPro}
               />
             </motion.div>
@@ -264,8 +328,24 @@ export default function CreatePage() {
                 realismLevel={realismLevel}
                 options={options}
                 onEnergyChange={setEnergyLevel}
-                onRealismChange={setRealismLevel}
-                onOptionChange={setOption}
+                onRealismChange={(level) => {
+                  setRealismLevel(level);
+                  trackEvent("vibe_adjusted", {
+                    realismLevel: level,
+                    energyLevel,
+                    tier,
+                  });
+                }}
+                onOptionChange={(key, value) => {
+                  setOption(key, value);
+                  trackEvent("vibe_adjusted", {
+                    optionKey: key,
+                    optionValue: value,
+                    realismLevel,
+                    energyLevel,
+                    tier,
+                  });
+                }}
               />
             </motion.div>
           )}

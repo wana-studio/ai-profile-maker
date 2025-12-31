@@ -1,12 +1,20 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import { PostHogProvider } from "@/lib/posthog";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Profile Maker - AI Photo Generator",
-  description: "Create stunning, realistic profile photos for dating apps, work, social media, and more using AI.",
-  keywords: ["AI photos", "profile pictures", "dating app photos", "professional headshots", "AI image generation"],
+  description:
+    "Create stunning, realistic profile photos for dating apps, work, social media, and more using AI.",
+  keywords: [
+    "AI photos",
+    "profile pictures",
+    "dating app photos",
+    "professional headshots",
+    "AI image generation",
+  ],
   openGraph: {
     title: "Profile Maker - AI Photo Generator",
     description: "Create stunning, realistic profile photos using AI",
@@ -42,10 +50,14 @@ export default function RootLayout({
       <html lang="en" className="dark">
         <head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossOrigin="anonymous"
+          />
         </head>
         <body className="antialiased min-h-screen bg-background text-foreground overflow-x-hidden">
-          {children}
+          <PostHogProvider>{children}</PostHogProvider>
         </body>
       </html>
     </ClerkProvider>

@@ -17,6 +17,7 @@ import Image from "next/image";
 import { LayoutGridIcon, ListIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CircularProgress } from "@/components/customized/progress/circular-progress";
+import { usePostHog, setUserProperties, trackEvent } from "@/lib/posthog";
 
 type CategoryId =
   | "all"
@@ -40,6 +41,7 @@ export default function GalleryPage() {
     setGenerationsThisMonth,
   } = useSubscriptionStore();
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
+  const posthog = usePostHog();
 
   // Load subscription status when signed in
   useEffect(() => {
@@ -60,6 +62,16 @@ export default function GalleryPage() {
           if (data.generationsThisMonth !== undefined) {
             setGenerationsThisMonth(data.generationsThisMonth);
           }
+
+          // Set user properties in PostHog
+          setUserProperties({
+            subscription_tier: data.tier,
+            generations_this_month: data.generationsThisMonth,
+            generations_remaining:
+              data.generationsRemaining === Infinity
+                ? 999
+                : data.generationsRemaining,
+          });
         })
         .catch((err) => console.error("Failed to load subscription:", err));
     }
@@ -92,6 +104,18 @@ export default function GalleryPage() {
             createdAt: new Date(photo.createdAt),
           }));
           setPhotos(photosWithDates);
+
+          // Track gallery viewed event
+          trackEvent("gallery_viewed", {
+            photoCount: photosWithDates.length,
+            tier,
+          });
+
+          // Set user property for total photos count
+          setUserProperties({
+            total_photos_count: photosWithDates.length,
+            has_uploaded_face: photosWithDates.length > 0,
+          });
         }
       } catch (err) {
         console.error("Failed to load photos:", err);
@@ -107,7 +131,7 @@ export default function GalleryPage() {
     return () => {
       isMounted = false;
     };
-  }, [isSignedIn, setPhotos]);
+  }, [isSignedIn, setPhotos, posthog, tier]);
 
   const filteredPhotos =
     selectedCategory === "all"
@@ -115,6 +139,42 @@ export default function GalleryPage() {
       : photos.filter((p) => p.category === selectedCategory);
 
   const [viewMode, setViewMode] = useState<"grid" | "feed">("grid");
+
+  // Handle view mode change with tracking
+  const handleViewModeChange = (mode: "grid" | "feed") => {
+    setViewMode(mode);
+    trackEvent("view_mode_changed", {
+      viewMode: mode,
+      photoCount: photos.length,
+      tier,
+    });
+  };
+
+  // Handle category change with tracking
+  const handleCategoryChange = (category: CategoryId) => {
+    setSelectedCategory(category);
+    const filtered =
+      category === "all"
+        ? photos
+        : photos.filter((p) => p.category === category);
+    trackEvent("category_changed", {
+      category,
+      photoCount: photos.length,
+      filteredPhotoCount: filtered.length,
+      tier,
+    });
+  };
+
+  // Handle photo click with tracking
+  const handlePhotoClick = (photo: GeneratedPhoto) => {
+    trackEvent("photo_clicked", {
+      photoId: photo.id,
+      category: photo.category,
+      styleCategory: photo.category,
+      tier,
+    });
+    router.push(`/gallery/${photo.id}`);
+  };
 
   const viewModes = [
     {
@@ -171,7 +231,7 @@ export default function GalleryPage() {
                     "rounded-full px-3 py-1.5 transition-colors duration-300",
                     viewMode === mode.id && "bg-foreground/20"
                   )}
-                  onClick={() => setViewMode(mode.id)}
+                  onClick={() => handleViewModeChange(mode.id)}
                 >
                   <mode.icon className="size-4" />
                 </button>
@@ -184,7 +244,7 @@ export default function GalleryPage() {
       {/* Category chips */}
       <CategoryChips
         selected={selectedCategory}
-        onSelect={setSelectedCategory}
+        onSelect={handleCategoryChange}
       />
 
       {/* Content */}
@@ -196,7 +256,7 @@ export default function GalleryPage() {
         <PhotoGrid
           photos={filteredPhotos}
           viewMode={viewMode}
-          onPhotoTap={(photo) => router.push(`/gallery/${photo.id}`)}
+          onPhotoTap={handlePhotoClick}
           onFavorite={toggleFavorite}
         />
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import {
@@ -19,7 +19,12 @@ import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/gallery/stat-card";
 import { AIInsights } from "@/components/gallery/ai-insights";
 import { useRouter } from "next/navigation";
-import { useGalleryStore, useModalStore } from "@/lib/stores";
+import {
+  useGalleryStore,
+  useModalStore,
+  useSubscriptionStore,
+} from "@/lib/stores";
+import { trackEvent, usePostHog } from "@/lib/posthog";
 
 const categoryColors: Record<string, string> = {
   dating: "bg-pink-500/20 text-pink-300",
@@ -40,6 +45,25 @@ export default function PhotoDetailPage({
   const { isSignedIn, isLoaded } = useUser();
   const { photos, toggleFavorite } = useGalleryStore();
   const { openEnhancementModal } = useModalStore();
+  const { tier } = useSubscriptionStore();
+  const posthog = usePostHog();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Find photo in store
+  const photo = photos.find((p) => p.id === id);
+
+  // Track photo detail viewed
+  useEffect(() => {
+    if (photo && isSignedIn) {
+      trackEvent("photo_detail_viewed", {
+        photoId: photo.id,
+        styleCategory: photo.category,
+        isFavorite: photo.isFavorite,
+        isWatermarked: photo.isWatermarked,
+        tier,
+      });
+    }
+  }, [photo?.id, isSignedIn, posthog, tier, photo]);
 
   // Loading state
   if (!isLoaded) {
@@ -90,12 +114,16 @@ export default function PhotoDetailPage({
     );
   }
 
-  // Find photo in store
-  const photo = photos.find((p) => p.id === id);
-  const [isDownloading, setIsDownloading] = useState(false);
-
   const handleDownload = async () => {
     if (!photo) return;
+
+    // Track download initiated
+    trackEvent("photo_download_initiated", {
+      photoId: photo.id,
+      styleCategory: photo.category,
+      isWatermarked: photo.isWatermarked,
+      tier,
+    });
 
     setIsDownloading(true);
     try {
@@ -119,6 +147,20 @@ export default function PhotoDetailPage({
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  const handleToggleFavorite = () => {
+    if (!photo) return;
+
+    toggleFavorite(photo.id);
+
+    // Track favorite toggled
+    trackEvent("photo_favorited", {
+      photoId: photo.id,
+      styleCategory: photo.category,
+      isFavorite: !photo.isFavorite,
+      tier,
+    });
   };
 
   // Photo not found
@@ -247,7 +289,7 @@ export default function PhotoDetailPage({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => toggleFavorite(photo.id)}
+            onClick={handleToggleFavorite}
             className="h-14 w-14 rounded-2xl bg-secondary"
           >
             <Heart
