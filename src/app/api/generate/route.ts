@@ -4,7 +4,9 @@ import Replicate from 'replicate';
 import { db, generatedPhotos, users, faceProfiles, styles } from '@/lib/db';
 import { eq, sql } from 'drizzle-orm';
 import { uploadToS3, downloadImage } from '@/lib/s3';
+import { analyzeGeneratedPhoto } from '@/lib/ai-analysis';
 
+const baseContextPrompt = 'Use the uploaded user photo as the primary identity reference. Preserve the person’s facial structure, skin tone, age, gender expression, and ethnicity accurately. Maintain photorealism. The final image must look like a high-end real photograph, not AI-generated.'
 const replicate = new Replicate({
     auth: process.env.REPLICATE_API_TOKEN,
 });
@@ -66,23 +68,19 @@ export async function POST(req: NextRequest) {
         }
 
         // Build the generation prompt
-        const energyDescriptor = energyLevel < 33 ? 'soft, gentle' : energyLevel < 66 ? 'balanced, natural' : 'bold, confident';
         const realismDescriptors: Record<string, string> = {
-            natural: 'maintaining exact facial features',
-            enhanced: 'with subtle enhancements',
-            hot: 'with attractive enhancements',
-            glowup: 'with significant beautification',
+            natural: 'maintaining exact facial features. Do not beautify unrealistically. No face distortion',
+            enhanced: 'Apply subtle enhancements but keep the face structure intact',
+            hot: 'Apply attractive enhancements and make the person hotter, without making significant facial changes',
+            glowup: 'Apply significant beautification',
         };
         const realismDescriptor = realismDescriptors[realismLevel as string] || '';
 
-        let prompt = `${style.prompt}, ${energyDescriptor}, ${realismDescriptor}`;
+        let prompt = `INSTRUCTION: ${baseContextPrompt}\nREALISM: ${realismDescriptor}\nIMAGE STYLE: ${style.prompt}`;
 
         // Add optional modifiers
-        if (options?.changeOutfit) prompt += ', wearing stylish modern outfit';
-        if (options?.changeHairstyle) prompt += ', with trendy hairstyle';
-        if (options?.addGlasses) prompt += ', wearing fashionable glasses';
-        if (options?.addBeard) prompt += ', with well-groomed beard';
-
+        if (options?.changeHairstyle) prompt += `\nHAIRSTYLE: ${options.hairStyle}`;
+        if (options?.addGlasses) prompt += `\nGLASSES: ${options.glasses}`;
         // Run generation on Replicate
         // Using a placeholder model - replace with actual face-swap/enhancement model
         const output = await replicate.run(
@@ -91,7 +89,7 @@ export async function POST(req: NextRequest) {
                 input: {
                     input_images: [faceProfile.imageUrl],
                     prompt: prompt,
-                    aspect_ratio: '3:2',
+                    aspect_ratio: options.aspectRatio || '3:2',
                     quality: "medium"
                 },
             }
@@ -108,21 +106,16 @@ export async function POST(req: NextRequest) {
             filename: `${Date.now()}-${styleId}.jpg`,
         });
 
-        // Generate stats (mock - replace with actual AI analysis)
-        const stats = {
-            formal: Math.floor(Math.random() * 40) + (style.category === 'work' ? 50 : 10),
-            spicy: Math.floor(Math.random() * 40) + (style.category === 'dating' ? 50 : 20),
-            cool: Math.floor(Math.random() * 40) + 40,
-            trustworthy: Math.floor(Math.random() * 30) + 50,
-            mysterious: Math.floor(Math.random() * 40) + (style.category === 'anonymous' ? 50 : 20),
-        };
+        // Generate stats and insights using AI analysis
+        const analysis = await analyzeGeneratedPhoto(
+            imageUrl as string,
+            style.category,
+            style.name,
+            realismLevel
+        );
 
-        // Generate insights (mock - replace with actual AI analysis)
-        const insights = [
-            `Energy level ${energyLevel > 50 ? 'projects confidence' : 'feels approachable'}`,
-            `${style.name} style enhances your look`,
-            `Great for ${style.category} profiles`,
-        ];
+        const stats = analysis.stats;
+        const insights = analysis.insights;
 
         // Save to database
         const [photo] = await db.insert(generatedPhotos).values({
