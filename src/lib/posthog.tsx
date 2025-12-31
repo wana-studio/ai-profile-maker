@@ -9,7 +9,6 @@ import { PostHogProvider as PHProvider } from "posthog-js/react";
 if (typeof window !== "undefined") {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
-
   if (posthogKey && posthogHost) {
     posthog.init(posthogKey, {
       api_host: posthogHost,
