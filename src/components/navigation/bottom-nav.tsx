@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import LiquidGlass from "liquid-glass-react";
+import LiquidGlass from "@nkzw/liquid-glass";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { GalleryIcon, PlusCircleIcon, UserIcon } from "../ui/icons";
 import { cn } from "@/lib/utils";
+import { useModalStore } from "@/lib/stores";
 
 const tabs = [
   { id: "gallery", label: "Gallery", icon: GalleryIcon, href: "/" },
@@ -13,8 +15,12 @@ const tabs = [
   { id: "profile", label: "Profile", icon: UserIcon, href: "/profile" },
 ];
 
+const protectedRoutes = ["/create", "/profile", "/gallery"];
+
 export function BottomNav() {
   const pathname = usePathname();
+  const { isSignedIn, isLoaded } = useUser();
+  const { openSignInModal } = useModalStore();
 
   const getActiveTab = () => {
     if (pathname === "/" || pathname.startsWith("/gallery")) return "gallery";
@@ -25,20 +31,35 @@ export function BottomNav() {
 
   const activeTab = getActiveTab();
 
+  const isProtectedRoute = (href: string) => {
+    return protectedRoutes.some((route) => href.startsWith(route));
+  };
+
+  const handleNavigation = (e: React.MouseEvent, href: string) => {
+    // Only intercept if Clerk has loaded and user is not signed in
+    if (isLoaded && !isSignedIn && isProtectedRoute(href)) {
+      e.preventDefault();
+      openSignInModal();
+    }
+  };
+
   return (
     <LiquidGlass
       padding="4px"
+      mode="polar"
+      saturation={150}
       elasticity={0}
-      cornerRadius={99}
-      blurAmount={0.2}
+      borderRadius={100}
+      blurAmount={0.1}
+      className="rounded-full safe-area-bottom bg-foreground/10 z-50"
       style={{
         position: "fixed",
-        bottom: "20px",
+        bottom: "0px",
         left: "50%",
+        width: "278px",
       }}
-      className="glass-shadow rounded-full"
     >
-      <div className="grid grid-cols-3 p-1 rounded-full w-full">
+      <div className="grid grid-cols-3 rounded-full w-full">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -47,6 +68,7 @@ export function BottomNav() {
             <Link
               key={tab.id}
               href={tab.href}
+              onClick={(e) => handleNavigation(e, tab.href)}
               className="relative w-[90px] flex flex-col items-center justify-center touch-active rounded-full py-2"
             >
               {isActive && (
