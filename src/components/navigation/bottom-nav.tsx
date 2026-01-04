@@ -51,7 +51,7 @@ export function BottomNav() {
       elasticity={0}
       borderRadius={100}
       blurAmount={0.1}
-      className="rounded-full safe-area-bottom bg-foreground/10 z-50"
+      className="rounded-full bg-foreground/10 z-50"
       style={{
         position: "fixed",
         bottom: "0px",
@@ -93,9 +93,8 @@ export function BottomNav() {
                 />
 
                 <span
-                  className={`text-[10px] font-semibold transition-colors mt-1 ${
-                    isActive ? "text-foreground" : "text-foreground/50"
-                  }`}
+                  className={`text-[10px] font-semibold transition-colors mt-1 ${isActive ? "text-foreground" : "text-foreground/50"
+                    }`}
                 >
                   {tab.label}
                 </span>
