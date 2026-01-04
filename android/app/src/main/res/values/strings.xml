@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Profile Maker</string>
+    <string name="title_activity_main">Profile Maker</string>
+    <string name="package_name">com.hooshang.profilemaker</string>
+    <string name="custom_url_scheme">com.hooshang.profilemaker</string>
+</resources>
