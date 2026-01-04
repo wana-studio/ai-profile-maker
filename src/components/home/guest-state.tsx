@@ -11,6 +11,7 @@ import {
     CarouselItem,
     type CarouselApi,
 } from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
 
 // Type definition to match the one in page.tsx
 type CategoryId =
@@ -71,6 +72,9 @@ export function GuestState({ selectedCategory }: { selectedCategory: string }) {
     const { openSignInModal } = useModalStore();
     const [api, setApi] = useState<CarouselApi>();
 
+    const [current, setCurrent] = useState(0);
+
+    // Sync carousel with selected category
     useEffect(() => {
         if (!api) {
             return;
@@ -83,40 +87,102 @@ export function GuestState({ selectedCategory }: { selectedCategory: string }) {
         if (categoryIndex !== -1) {
             api.scrollTo(categoryIndex);
         } else {
-            // Default to "all" or first slide if category not found directly
             api.scrollTo(0);
         }
     }, [api, selectedCategory]);
+
+    // Handle scroll animations for coverflow effect
+    useEffect(() => {
+        if (!api) return;
+
+        const onScroll = () => {
+            const scrollProgress = api.scrollProgress();
+
+            api.scrollSnapList().forEach((scrollSnap, index) => {
+                const slideNode = api.slideNodes()[index];
+                const slideBody = slideNode.querySelector('.slide-body') as HTMLElement;
+                if (!slideBody) return;
+
+                // Calculate distance from center
+                // Embla's scrollProgress goes from 0 to 1 (or more if looped)
+                // We need to normalize it relative to the current slide's snap point
+
+                let diff = scrollProgress - scrollSnap;
+
+                // Handle wrap-around for loop mode
+                if (diff < -0.5) diff += 1;
+                if (diff > 0.5) diff -= 1;
+
+                // Scale and Opacity calculations
+                const scale = 1 - Math.abs(diff * 4); // Reduces scale as it moves away
+                const opacity = 1 - Math.abs(diff * 3);
+
+                // Rotation
+                const rotate = diff * -40; // Rotates based on position
+
+                // Clamping values
+                const clampedScale = Math.max(0.7, scale);
+                const clampedOpacity = Math.max(0.3, opacity);
+
+                // Apply styles
+                slideBody.style.transform = `scale(${clampedScale}) rotate(${rotate}deg)`;
+                slideBody.style.opacity = `${clampedOpacity}`;
+                slideBody.style.zIndex = `${Math.round(clampedOpacity * 25)}`;
+            });
+        };
+
+        api.on("scroll", onScroll);
+        api.on("reInit", onScroll);
+        // Trigger once on init
+        onScroll();
+
+        return () => {
+            api.off("scroll", onScroll);
+            api.off("reInit", onScroll);
+        };
+    }, [api]);
+
+    // Handle select event to update text
+    useEffect(() => {
+        if (!api) {
+            return;
+        }
+
+        const onSelect = () => {
+            setCurrent(api.selectedScrollSnap());
+        };
+
+        api.on("select", onSelect);
+        api.on("reInit", onSelect);
+        onSelect();
+
+        return () => {
+            api.off("select", onSelect);
+            api.off("reInit", onSelect);
+        };
+    }, [api]);
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-16 px-4 text-center w-full max-w-md mx-auto"
+            className="flex flex-col items-center justify-center py-16 px-4 text-center w-full max-w-4xl mx-auto overflow-hidden"
         >
-            <Carousel setApi={setApi} className="w-full">
-                <CarouselContent>
+            <Carousel
+                setApi={setApi}
+                className="w-full"
+                opts={{
+                    align: "center",
+                    loop: true,
+                    containScroll: false,
+                }}
+            >
+                <CarouselContent className="items-center -ml-4">
                     {slides.map((slide, index) => (
-                        <CarouselItem key={index}>
-                            <div className="flex flex-col items-center justify-center">
-                                <div className="relative flex items-center justify-center mb-10 w-full h-[200px]">
-                                    {/* Background Accents - Static for visual consistency or could be dynamic */}
-                                    <Image
-                                        src="/images/img-right.png"
-                                        alt="Background"
-                                        width={106}
-                                        height={113}
-                                        className="absolute right-0 w-[80px] h-[85px] object-cover rounded-[20px] rotate-6 opacity-20 blur-sm"
-                                    />
-                                    <Image
-                                        src="/images/img-left.png"
-                                        alt="Background"
-                                        width={106}
-                                        height={113}
-                                        className="absolute left-0 w-[80px] h-[85px] object-cover rounded-[20px] -rotate-6 opacity-20 blur-sm"
-                                    />
-
-                                    <div className="p-3 rounded-[40px] bg-foreground/5 backdrop-blur-2xl relative z-10 transition-transform duration-500 hover:scale-105">
+                        <CarouselItem key={index} className="basis-1/3 min-w-[200px] pl-4">
+                            <div className="flex flex-col items-center justify-center select-none">
+                                <div className="relative flex items-center justify-center mb-10 w-full h-[180px]">
+                                    <div className="slide-body transition-all duration-75 ease-out rounded-[40px] bg-foreground/5 backdrop-blur-2xl p-3">
                                         <div
                                             className="rounded-[30px]"
                                             style={{
@@ -129,22 +195,32 @@ export function GuestState({ selectedCategory }: { selectedCategory: string }) {
                                                 width={131}
                                                 height={140}
                                                 className="w-[131px] h-[140px] object-cover rounded-[30px]"
+                                                draggable={false}
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                <h2 className="text-2xl font-bold text-white whitespace-pre-line h-[64px] flex items-center justify-center">
-                                    {slide.title}
-                                </h2>
-                                <p className="text-muted-foreground font-medium max-w-xs mt-2.5 h-[24px]">
-                                    {slide.description}
-                                </p>
                             </div>
                         </CarouselItem>
                     ))}
                 </CarouselContent>
             </Carousel>
+
+            <motion.div
+                key={current}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col items-center justify-center mt-6"
+            >
+                <h2 className="text-2xl font-bold text-white whitespace-pre-line text-center">
+                    {slides[current]?.title}
+                </h2>
+                <p className="text-muted-foreground font-medium max-w-xs mt-2.5 text-center">
+                    {slides[current]?.description}
+                </p>
+            </motion.div>
 
             <Button
                 className="px-8 py-6 rounded-full gradient-warm text-white font-semibold text-lg mt-8"
