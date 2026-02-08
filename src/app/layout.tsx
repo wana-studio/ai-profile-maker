@@ -5,7 +5,7 @@ import { PostHogProvider } from "@/lib/posthog";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Profile Maker - AI Photo Generator",
+  title: "Selfio - AI Selfie Enhancer",
   description:
     "Create stunning, realistic profile photos for dating apps, work, social media, and more using AI.",
   keywords: [
@@ -13,11 +13,11 @@ export const metadata: Metadata = {
     "profile pictures",
     "dating app photos",
     "professional headshots",
-    "AI image generation",
+    "AI selfie enhancement",
   ],
   openGraph: {
-    title: "Profile Maker - AI Photo Generator",
-    description: "Create stunning, realistic profile photos using AI",
+    title: "Selfio - AI Selfie Enhancer",
+    description: "Create stunning, realistic selfies using AI",
     type: "website",
   },
 };

@@ -1,4 +1,4 @@
-# Profile Maker - AI Photo Generator
+# Selfio - AI Photo Generator
 
 A mobile-first iOS-style consumer AI Selfie app for generating high-quality, realistic profile photos optimized for dating apps, work, social media, and anonymous aesthetics.
 

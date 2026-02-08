@@ -230,7 +230,7 @@ export default function GalleryPage() {
             )}
           </div>
 
-          <h1 className="text-xl font-bold text-white">Gallery AI</h1>
+          <h1 className="text-xl font-bold text-white">Selfio</h1>
           <div className="flex items-center justify-end">
             <div className="bg-foreground/10 rounded-full grid grid-cols-2 p-1">
               {viewModes.map((mode) => (

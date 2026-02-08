@@ -234,16 +234,14 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className={`p-5 rounded-3xl ${
-            isPro ? "gradient-warm" : "bg-foreground/10 border border-white/10"
-          }`}
+          className={`p-5 rounded-3xl ${isPro ? "gradient-warm" : "bg-foreground/10 border border-white/10"
+            }`}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div
-                className={`p-2 rounded-xl ${
-                  isPro ? "bg-white/20" : "gradient-warm"
-                }`}
+                className={`p-2 rounded-xl ${isPro ? "bg-white/20" : "gradient-warm"
+                  }`}
               >
                 <Crown className="w-6 h-6 text-white" />
               </div>
@@ -450,7 +448,7 @@ export default function ProfilePage() {
 
         {/* Version */}
         <p className="text-center text-xs text-muted-foreground py-4">
-          Profile Maker v1.0.0
+          Selfio v1.0.0
         </p>
       </div>
 
@@ -468,10 +466,9 @@ export default function ProfilePage() {
             <div
               onClick={() => fileInputRef.current?.click()}
               className={`relative aspect-square rounded-2xl border-2 border-dashed transition-colors cursor-pointer
-                ${
-                  uploadPreview
-                    ? "border-brand-orange"
-                    : "border-white/20 hover:border-white/40"
+                ${uploadPreview
+                  ? "border-brand-orange"
+                  : "border-white/20 hover:border-white/40"
                 }`}
             >
               {uploadPreview ? (
