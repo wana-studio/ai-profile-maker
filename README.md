@@ -50,6 +50,7 @@ git clone <your-repo-url>
 cd profile-maker
 ```
 
+
 2. Install dependencies:
 ```bash
 npm install
