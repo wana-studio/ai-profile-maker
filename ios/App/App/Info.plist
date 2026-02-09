@@ -47,5 +47,18 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- Clerk Authentication Domains -->
+	<key>WKAppBoundDomains</key>
+	<array>
+		<string>clerk.selfio.social</string>
+		<string>accounts.selfio.social</string>
+		<string>selfio.social</string>
+	</array>
+	<!-- Allow arbitrary loads for Clerk API calls -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
