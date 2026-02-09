@@ -175,7 +175,7 @@ export function SubscriptionModal() {
                     Monthly subscription
                   </p>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-white">$9.99</span>
+                    <span className="text-4xl font-bold text-white">$8.99</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
@@ -200,7 +200,7 @@ export function SubscriptionModal() {
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground mt-4">
-                  7-day free trial • Then $9.99/month
+                  7-day free trial • Then $8.99/month
                 </p>
               </div>
             </div>
