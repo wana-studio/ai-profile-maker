@@ -1,10 +1,18 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    namespace = "com.hooshang.profilemaker"
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+    kotlinOptions {
+        jvmTarget = '21'
+    }
+    namespace = "social.selfio.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.hooshang.profilemaker"
+        applicationId "social.selfio.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -15,6 +23,7 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        buildConfigField "String", "APP_METRICA_API_KEY", "\"2d02e59d-87d4-46eb-bf97-3e41b15a88ef\""
     }
     buildTypes {
         release {
@@ -40,6 +49,11 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    implementation 'io.appmetrica.analytics:analytics:7.11.0'
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
+    implementation "com.google.firebase:firebase-messaging:24.0.0"
+    implementation 'com.google.android.play:review:2.0.2'
+
 }
 
 apply from: 'capacitor.build.gradle'

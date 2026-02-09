@@ -9,6 +9,7 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
+    implementation 'androidx.core:core-ktx:1.10.1'
     implementation project(':capacitor-community-safe-area')
     implementation project(':capgo-capacitor-pay')
 

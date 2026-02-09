@@ -1,4 +1,4 @@
-package com.hooshang.profilemaker;
+package social.selfio.app;
 
 import com.getcapacitor.BridgeActivity;
 
