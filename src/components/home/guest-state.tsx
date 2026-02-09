@@ -24,47 +24,42 @@ type CategoryId =
     | "travel";
 
 const slides = [
-    {
-        category: "all",
-        image: "/images/img-center.png",
-        title: "Look like someone\npeople trust",
-        description: "Your professional LinkedIn photo",
-    },
+
     {
         category: "dating",
-        image: "/images/img-right.png",
-        title: "Find your perfect\nmatch",
-        description: "Stand out on dating apps",
+        image: "/images/dating.jpg",
+        title: "Go Wild & Cute",
+        description: "Playful colors, dreamy chaos, main-character energy",
     },
     {
         category: "work",
-        image: "/images/img-left.png",
-        title: "Advance your\ncareer",
-        description: "Professional headshots for business",
+        image: "/images/work.jpg",
+        title: "Look Instantly Pro",
+        description: "Studio-clean portrait that screams confidence",
     },
     {
         category: "social",
-        image: "/images/img-center.png",
-        title: "Grow your social\npresence",
-        description: "Engaging photos for social media",
+        image: "/images/social.jpg",
+        title: "Go Viral Ready",
+        description: "High-energy glow with a cinematic orange vibe",
     },
     {
         category: "anonymous",
-        image: "/images/img-right.png",
-        title: "Stay private but\npresent",
-        description: "Artistic anonymous avatars",
+        image: "/images/anonymous.jpg",
+        title: "Reveal the Mystery",
+        description: "Artistic shadows with dramatic mood",
     },
     {
         category: "creative",
-        image: "/images/img-left.png",
-        title: "Express your\ncreativity",
-        description: "Unique styles for creatives",
+        image: "/images/creative.jpg",
+        title: "Turn Bold in One Tap",
+        description: "High-energy glow with a cinematic orange vibe",
     },
     {
         category: "travel",
-        image: "/images/img-center.png",
-        title: "Share your\nadventures",
-        description: "Travel-themed profile pictures",
+        image: "/images/travel.jpg",
+        title: "Teleport to Japan",
+        description: "Iconic Mount Fuji scenery with cinematic travel energy",
     },
 ];
 
