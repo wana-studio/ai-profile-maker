@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Selfio</string>
+    <string name="title_activity_main">Selfio</string>
+    <string name="package_name">social.selfio.app</string>
+    <string name="custom_url_scheme">social.selfio.app</string>
+    <string name="default_notification_channel_id">SelfioNotification</string>
+</resources>
