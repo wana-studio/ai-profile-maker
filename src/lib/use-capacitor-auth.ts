@@ -222,7 +222,7 @@ export function useCapacitorAuth(): UseCapacitorAuthReturn {
 
     /**
      * Sign in with Google using native Capacitor plugin
-     * Uses OAuth with Google ID token to create a ticket for Clerk
+     * Flow: Native Google login → Backend verifies token → Clerk sign-in ticket
      */
     const signInWithGoogle = useCallback(async (): Promise<boolean> => {
         if (!isSignInLoaded || !signIn) {
@@ -234,7 +234,7 @@ export function useCapacitorAuth(): UseCapacitorAuthReturn {
         setError(null);
 
         try {
-            // Use native Google login via Capacitor plugin
+            // Step 1: Native Google login via Capacitor plugin
             const loginResult = await SocialLogin.login({
                 provider: "google",
                 options: {},
@@ -255,39 +255,42 @@ export function useCapacitorAuth(): UseCapacitorAuthReturn {
 
             const onlineResult = googleResult as GoogleLoginResponseOnline;
             const idToken = onlineResult.idToken;
-            const profile = onlineResult.profile;
 
             if (!idToken) {
                 setError("No ID token received from Google");
                 return false;
             }
 
-            // For Clerk, we need to use the OAuth redirect flow with a ticket
-            // First, start the OAuth flow which will give us the redirect URL
-            const oauthResult = await signIn.create({
-                strategy: "oauth_google",
-                redirectUrl: window.location.origin + "/sso-callback",
-                actionCompleteRedirectUrl: window.location.origin + "/",
+            // Step 2: Exchange Google ID token for Clerk sign-in ticket via backend
+            const response = await fetch("/api/auth/google-native", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken }),
             });
 
-            // If OAuth is configured correctly, we should have a first factor
-            if (oauthResult.status === "complete" && oauthResult.createdSessionId) {
-                await setActive({ session: oauthResult.createdSessionId });
-                storeCapacitorSession(oauthResult.createdSessionId);
+            if (!response.ok) {
+                const errorData = await response.json();
+                setError(errorData.error || "Failed to authenticate with server");
+                return false;
+            }
+
+            const { token } = await response.json();
+
+            // Step 3: Use the sign-in ticket to create a Clerk session
+            const clerkResult = await signIn.create({
+                strategy: "ticket",
+                ticket: token,
+            });
+
+            if (clerkResult.status === "complete" && clerkResult.createdSessionId) {
+                await setActive({ session: clerkResult.createdSessionId });
+                storeCapacitorSession(clerkResult.createdSessionId);
                 setStep("idle");
                 return true;
-            }
-
-            // If we get here, OAuth redirect is needed but we have a native token
-            // For a proper integration, the backend would need to verify the Google ID token
-            // and create a Clerk session. For now, we'll show user info and suggest using email
-            if (profile?.email) {
-                setError(`Google auth requires additional setup. Please sign in with email: ${profile.email}`);
             } else {
-                setError("Google authentication requires web redirect. Please try email sign-in.");
+                setError("Clerk authentication incomplete");
+                return false;
             }
-            return false;
-
         } catch (err: unknown) {
             console.error("Google sign in error:", err);
             const error = err as { errors?: Array<{ message: string }>; message?: string };
