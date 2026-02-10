@@ -13,7 +13,8 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.0.0"),
         .package(name: "CapacitorCommunitySafeArea", path: "../../../node_modules/.pnpm/@capacitor-community+safe-area@8.0.1_@capacitor+core@8.0.0/node_modules/@capacitor-community/safe-area"),
-        .package(name: "CapgoCapacitorPay", path: "../../../node_modules/.pnpm/@capgo+capacitor-pay@8.0.5_@capacitor+core@8.0.0/node_modules/@capgo/capacitor-pay")
+        .package(name: "CapgoCapacitorPay", path: "../../../node_modules/.pnpm/@capgo+capacitor-pay@8.0.5_@capacitor+core@8.0.0/node_modules/@capgo/capacitor-pay"),
+        .package(name: "CapgoCapacitorSocialLogin", path: "../../../node_modules/.pnpm/@capgo+capacitor-social-login@8.2.23_@capacitor+core@8.0.0/node_modules/@capgo/capacitor-social-login")
     ],
     targets: [
         .target(
@@ -22,7 +23,8 @@ let package = Package(
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm"),
                 .product(name: "CapacitorCommunitySafeArea", package: "CapacitorCommunitySafeArea"),
-                .product(name: "CapgoCapacitorPay", package: "CapgoCapacitorPay")
+                .product(name: "CapgoCapacitorPay", package: "CapgoCapacitorPay"),
+                .product(name: "CapgoCapacitorSocialLogin", package: "CapgoCapacitorSocialLogin")
             ]
         )
     ]
