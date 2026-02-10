@@ -1,0 +1,506 @@
+/* ============================================
+   LANDING PAGE - NGL-Inspired Styles
+   ============================================ */
+
+/* === Gradient Sections === */
+.landing-hero {
+  background: linear-gradient(
+    180deg,
+    #ff6b35 0%,
+    #f72585 40%,
+    #b5179e 70%,
+    #7209b7 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-section-dark {
+  background: #0a0a0f;
+  position: relative;
+}
+
+.landing-section-gradient-pink {
+  background: linear-gradient(180deg, #f72585 0%, #ff6b35 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-section-gradient-orange {
+  background: linear-gradient(180deg, #ff6b35 0%, #f7a325 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-section-gradient-sunset {
+  background: linear-gradient(
+    180deg,
+    #f72585 0%,
+    #ff6b35 50%,
+    #f7a325 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-section-gradient-final {
+  background: linear-gradient(
+    180deg,
+    #7209b7 0%,
+    #f72585 50%,
+    #ff6b35 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+/* === Typography === */
+.landing-heading {
+  font-family: "SF Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  font-weight: 800;
+  color: white;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.landing-heading-xl {
+  font-size: clamp(3.5rem, 10vw, 7rem);
+}
+
+.landing-heading-lg {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+}
+
+.landing-heading-md {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+
+.landing-subheading {
+  font-family: "SF Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
+  line-height: 1.5;
+}
+
+/* === Floating Elements === */
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--float-rotate, 0deg));
+  }
+  50% {
+    transform: translateY(var(--float-distance, -15px))
+      rotate(calc(var(--float-rotate, 0deg) + 3deg));
+  }
+}
+
+@keyframes landing-float-reverse {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--float-rotate, 0deg));
+  }
+  50% {
+    transform: translateY(var(--float-distance, 15px))
+      rotate(calc(var(--float-rotate, 0deg) - 3deg));
+  }
+}
+
+@keyframes landing-bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(40px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05) translateY(-5px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes landing-spin-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes landing-wiggle {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+.float-element {
+  animation: landing-float 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.float-element-reverse {
+  animation: landing-float-reverse 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.float-element-slow {
+  animation: landing-float 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.bounce-in {
+  animation: landing-bounce-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.spin-slow {
+  animation: landing-spin-slow 20s linear infinite;
+}
+
+.wiggle {
+  animation: landing-wiggle 2s ease-in-out infinite;
+}
+
+/* === Screenshot Mockups === */
+.phone-mockup {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2rem;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 10px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.phone-mockup-dark {
+  background: linear-gradient(
+    145deg,
+    rgba(20, 20, 30, 0.9) 0%,
+    rgba(10, 10, 15, 0.95) 100%
+  );
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* === CTA Buttons === */
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: "SF Rounded", sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 1rem 2.5rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cta-button:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+.cta-button:active {
+  transform: scale(0.98);
+}
+
+.cta-button-primary {
+  background: white;
+  color: #1a1a2e;
+}
+
+.cta-button-dark {
+  background: #1a1a2e;
+  color: white;
+}
+
+.cta-button-outline {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.cta-button-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+}
+
+/* === Chips / Labels === */
+.style-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  font-family: "SF Rounded", sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.style-chip:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* === Rounded Cards === */
+.landing-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.landing-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.landing-card-dark {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.landing-card-dark:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-4px);
+}
+
+/* === Step Numbers === */
+.step-number {
+  font-family: "SF Rounded", sans-serif;
+  font-weight: 800;
+  font-size: 5rem;
+  line-height: 1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.05) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === Testimonial Cards === */
+.testimonial-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* === Decorative Blobs === */
+.blob-1 {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgba(247, 37, 133, 0.3);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.blob-2 {
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: rgba(114, 9, 183, 0.3);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.blob-3 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 107, 53, 0.25);
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+/* === Navbar === */
+.landing-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 1rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.landing-nav-scrolled {
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* === Scroll indicator === */
+@keyframes scroll-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+.scroll-indicator {
+  animation: scroll-bounce 2s ease-in-out infinite;
+}
+
+/* === Photo Grid for mockups === */
+.photo-mosaic {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.photo-mosaic-item {
+  border-radius: 1rem;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* === Use Case Tags === */
+.use-case-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-family: "SF Rounded", sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: white;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* === Footer === */
+.landing-footer {
+  background: #0a0a0f;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* === Responsive adjustments === */
+@media (max-width: 768px) {
+  .landing-heading-xl {
+    font-size: clamp(2.8rem, 12vw, 4.5rem);
+  }
+
+  .landing-heading-lg {
+    font-size: clamp(2.2rem, 10vw, 3.5rem);
+  }
+
+  .phone-mockup,
+  .phone-mockup-dark {
+    border-radius: 1.5rem;
+  }
+
+  .landing-card,
+  .landing-card-dark {
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+  }
+
+  .cta-button {
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+/* === Marquee === */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 30s linear infinite;
+}
+
+/* === Before/After comparison === */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.comparison-item {
+  border-radius: 1.25rem;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comparison-label {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-family: "SF Rounded", sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+}
