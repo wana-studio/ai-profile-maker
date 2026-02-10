@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { PostHogProvider } from "@/lib/posthog";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -85,6 +86,7 @@ export default function RootLayout({
         </head>
         <body className="antialiased min-h-screen bg-background text-foreground overflow-x-hidden">
           <PostHogProvider>{children}</PostHogProvider>
+          <Toaster theme="dark" position="top-center" richColors />
         </body>
       </html>
     </ClerkProvider>

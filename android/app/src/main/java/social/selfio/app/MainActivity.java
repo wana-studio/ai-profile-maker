@@ -8,8 +8,16 @@ import com.getcapacitor.Plugin;
 import android.content.Intent;
 import android.util.Log;
 import com.getcapacitor.BridgeActivity;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
+    
+    @Override
+    protected void onCreate(android.os.Bundle savedInstanceState) {
+        registerPlugin(ShareHandler.class);
+        super.onCreate(savedInstanceState);
+    }
     
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

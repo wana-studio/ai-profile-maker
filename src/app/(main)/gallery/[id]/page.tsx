@@ -25,6 +25,11 @@ import {
   useSubscriptionStore,
 } from "@/lib/stores";
 import { trackEvent, usePostHog } from "@/lib/posthog";
+import { toast } from "sonner";
+import { Capacitor } from "@capacitor/core";
+import { Directory, Filesystem } from "@capacitor/filesystem";
+import { FileTransfer } from "@capacitor/file-transfer";
+import { ShareHandler } from "@/lib/plugins/share-handler";
 
 const categoryColors: Record<string, string> = {
   dating: "bg-pink-500/20 text-pink-300",
@@ -33,6 +38,26 @@ const categoryColors: Record<string, string> = {
   anonymous: "bg-slate-500/20 text-slate-300",
   creative: "bg-orange-500/20 text-orange-300",
   travel: "bg-cyan-500/20 text-cyan-300",
+};
+
+/**
+ * Extracts filename from image URL
+ */
+const getImageFileName = (url: string): { fileName: string } => {
+  try {
+    const urlObj = new URL(url);
+    const pathSegments = urlObj.pathname.split("/");
+    let fileName =
+      pathSegments[pathSegments.length - 1] || `image-${Date.now()}.png`;
+
+    if (!fileName.includes(".")) {
+      fileName = `${fileName}.png`;
+    }
+
+    return { fileName };
+  } catch {
+    return { fileName: `image-${Date.now()}.png` };
+  }
 };
 
 export default function PhotoDetailPage({
@@ -48,6 +73,7 @@ export default function PhotoDetailPage({
   const { tier } = useSubscriptionStore();
   const posthog = usePostHog();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   // Find photo in store
   const photo = photos.find((p) => p.id === id);
@@ -126,7 +152,50 @@ export default function PhotoDetailPage({
     });
 
     setIsDownloading(true);
+    const loadingToast = toast.loading("Downloading image...");
+
     try {
+      // Use Capacitor FileTransfer for native platforms
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const { fileName } = getImageFileName(photo.imageUrl);
+
+          const directory =
+            Capacitor.getPlatform() === "android"
+              ? Directory.ExternalStorage
+              : Directory.Documents;
+
+          const path =
+            Capacitor.getPlatform() === "android"
+              ? `Pictures/Selfio/${fileName}`
+              : `selfio/${fileName}`;
+
+          const fileInfo = await Filesystem.getUri({
+            directory,
+            path,
+          });
+
+          await FileTransfer.downloadFile({
+            url: photo.imageUrl,
+            path: fileInfo.uri,
+          });
+
+          toast.dismiss(loadingToast);
+          toast.success("Image saved successfully");
+          setIsDownloading(false);
+          return;
+        } catch (nativeError) {
+          console.error("Native download failed:", nativeError);
+          toast.dismiss(loadingToast);
+          toast.error(
+            `Download failed: ${nativeError instanceof Error ? nativeError.message : "Unknown error"}`
+          );
+          setIsDownloading(false);
+          return;
+        }
+      }
+
+      // Web fallback
       const filename = `${photo.title || "photo"}-${photo.id}.jpg`;
       const downloadUrl = `/api/download?url=${encodeURIComponent(
         photo.imageUrl
@@ -142,10 +211,106 @@ export default function PhotoDetailPage({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+
+      toast.dismiss(loadingToast);
+      toast.success("Image downloaded");
     } catch (error) {
       console.error("Failed to download image:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Failed to download image");
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!photo) return;
+
+    // Track share initiated
+    trackEvent("photo_share_initiated", {
+      photoId: photo.id,
+      styleCategory: photo.category,
+      tier,
+    });
+
+    setIsSharing(true);
+
+    try {
+      // Use Capacitor ShareHandler for native platforms
+      if (Capacitor.isNativePlatform()) {
+        const canShare = await ShareHandler.canShare();
+        let fileUri = photo.imageUrl;
+
+        try {
+          const { fileName } = getImageFileName(photo.imageUrl);
+
+          const directory =
+            Capacitor.getPlatform() === "android"
+              ? Directory.ExternalStorage
+              : Directory.Documents;
+
+          const path =
+            Capacitor.getPlatform() === "android"
+              ? `Pictures/Selfio/${fileName}`
+              : `selfio/${fileName}`;
+
+          const fileInfo = await Filesystem.getUri({
+            directory,
+            path,
+          });
+
+          const file = await FileTransfer.downloadFile({
+            url: photo.imageUrl,
+            path: fileInfo.uri,
+          });
+          fileUri = file.path || photo.imageUrl;
+        } catch (downloadError) {
+          console.error("Failed to download image for sharing:", downloadError);
+        }
+
+        if (canShare.value) {
+          await ShareHandler.share({
+            title: "Selfio - AI Generated Photo",
+            url: fileUri,
+          });
+        } else if (navigator?.clipboard) {
+          await navigator.clipboard.writeText(photo.imageUrl);
+          toast.success("Image link copied to clipboard");
+        } else {
+          window.open(photo.imageUrl, "_blank");
+        }
+
+        setIsSharing(false);
+        return;
+      }
+
+      // Web fallback
+      const response = await fetch(photo.imageUrl);
+      const blob = await response.blob();
+      const filename =
+        photo.imageUrl.split("/").pop() || "selfio-generated-photo.jpg";
+      const file = new File([blob], filename, { type: blob.type });
+
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({
+          title: "Selfio - AI Generated Photo",
+          files: [file],
+        });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(photo.imageUrl);
+        toast.success("Image link copied to clipboard");
+      } else {
+        window.open(photo.imageUrl, "_blank");
+      }
+    } catch (error) {
+      console.error("Failed to share image:", error);
+      toast.error("Share failed");
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -217,8 +382,16 @@ export default function PhotoDetailPage({
               <ArrowLeft className="w-6 h-6 text-white" />
             </button>
             <div className="flex gap-2">
-              <button className="p-2 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors">
-                <Share2 className="w-5 h-5 text-white" />
+              <button
+                onClick={handleShare}
+                disabled={isSharing}
+                className="p-2 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors disabled:opacity-50"
+              >
+                {isSharing ? (
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                ) : (
+                  <Share2 className="w-5 h-5 text-white" />
+                )}
               </button>
             </div>
           </div>
@@ -257,8 +430,8 @@ export default function PhotoDetailPage({
                 {photo.energyLevel && photo.energyLevel < 33
                   ? "Soft"
                   : photo.energyLevel && photo.energyLevel < 66
-                  ? "Balanced"
-                  : "Bold"}
+                    ? "Balanced"
+                    : "Bold"}
               </p>
             </div>
             <div>
@@ -293,9 +466,8 @@ export default function PhotoDetailPage({
             className="h-14 w-14 rounded-2xl bg-secondary"
           >
             <Heart
-              className={`w-6 h-6 ${
-                photo.isFavorite ? "text-pink-500 fill-pink-500" : "text-white"
-              }`}
+              className={`w-6 h-6 ${photo.isFavorite ? "text-pink-500 fill-pink-500" : "text-white"
+                }`}
             />
           </Button>
           <Button
