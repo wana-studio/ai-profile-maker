@@ -10,11 +10,14 @@ const config: CapacitorConfig = {
     },
     plugins: {
         SafeArea: {
-            statusBarStyle: "LIGHT",
-            navigationBarStyle: "LIGHT",
+            statusBarStyle: undefined,
+            navigationBarStyle: undefined,
             detectViewportFitCoverChanges: undefined,
             initialViewportFitCover: undefined,
             offsetForKeyboardInsetBug: undefined,
+        },
+        StatusBar: {
+            style: "DARK",
         }
     }
 };

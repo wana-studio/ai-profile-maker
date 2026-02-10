@@ -15,6 +15,7 @@
     "@capacitor/cli": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0",
     "@capgo/capacitor-pay": "^8.0.5",
     "@capgo/capacitor-social-login": "^8.2.23",
     "@clerk/nextjs": "^6.36.5",

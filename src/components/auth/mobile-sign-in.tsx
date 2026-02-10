@@ -32,7 +32,10 @@ export function MobileSignIn({ onSwitchToSignUp, onSuccess }: MobileSignInProps)
 
     const handleGoogleSignIn = async () => {
         clearError();
-        await signInWithGoogle();
+        const success = await signInWithGoogle();
+        if (success) {
+            onSuccess?.();
+        }
     };
 
     return (

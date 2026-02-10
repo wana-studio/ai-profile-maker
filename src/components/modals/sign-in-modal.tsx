@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { SignIn } from "@clerk/nextjs";
+import { SignIn, useUser } from "@clerk/nextjs";
 import { useModalStore } from "@/lib/stores";
 import { isCapacitorNative } from "@/lib/capacitor-auth";
 import { MobileSignIn } from "@/components/auth/mobile-sign-in";
@@ -13,12 +13,20 @@ type AuthMode = "signin" | "signup";
 
 export function SignInModal() {
   const { isSignInModalOpen, closeSignInModal } = useModalStore();
+  const { isSignedIn } = useUser();
   const [isCapacitor, setIsCapacitor] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("signin");
 
   useEffect(() => {
     setIsCapacitor(isCapacitorNative());
   }, []);
+
+  // Auto-close modal when user becomes authenticated (handles web Clerk login)
+  useEffect(() => {
+    if (isSignedIn && isSignInModalOpen) {
+      closeSignInModal();
+    }
+  }, [isSignedIn, isSignInModalOpen, closeSignInModal]);
 
   const handleSuccess = () => {
     closeSignInModal();
