@@ -18,11 +18,13 @@ import {
   LogIn,
   Upload,
   X,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -45,11 +47,14 @@ export default function ProfilePage() {
     setGenerationsRemaining,
     setGenerationsThisMonth,
   } = useSubscriptionStore();
-  const { profiles, setProfiles } = useFaceProfilesStore();
+  const { profiles, setProfiles, removeProfile } = useFaceProfilesStore();
   const { openSubscriptionModal } = useModalStore();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeletingProfile, setIsDeletingProfile] = useState<string | null>(
+    null
+  );
   const [uploadPreview, setUploadPreview] = useState<string | null>(null);
   const [profileName, setProfileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,6 +144,38 @@ export default function ProfilePage() {
       alert("Failed to upload. Please try again.");
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleDeleteProfile = async (id: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this face profile? This action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    setIsDeletingProfile(id);
+    const loadingToast = toast.loading("Deleting face profile...");
+
+    try {
+      const response = await fetch(`/api/face-profiles/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete profile");
+      }
+
+      toast.dismiss(loadingToast);
+      toast.success("Face profile deleted successfully");
+
+      removeProfile(id);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Failed to delete face profile");
+    } finally {
+      setIsDeletingProfile(null);
     }
   };
 
@@ -337,13 +374,28 @@ export default function ProfilePage() {
                         {profile.isDefault ? "Default" : "Secondary"}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-red-400 transition-colors"
+                        onClick={() => handleDeleteProfile(profile.id)}
+                        disabled={isDeletingProfile === profile.id}
+                      >
+                        {isDeletingProfile === profile.id ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-5 h-5" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -437,12 +489,12 @@ export default function ProfilePage() {
 
             <Separator className="bg-white/10" />
 
-            <button className="w-full flex items-center justify-between py-3 text-red-400 hover:text-red-300 transition-colors">
+            {/* <button className="w-full flex items-center justify-between py-3 text-red-400 hover:text-red-300 transition-colors">
               <div className="flex items-center gap-3">
                 <Trash2 className="w-5 h-5" />
                 <span>Delete Account</span>
               </div>
-            </button>
+            </button> */}
           </div>
         </motion.div>
 
