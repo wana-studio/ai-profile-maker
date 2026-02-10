@@ -16,6 +16,7 @@
     "@capacitor/core": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
     "@capgo/capacitor-pay": "^8.0.5",
+    "@capgo/capacitor-social-login": "^8.2.23",
     "@clerk/nextjs": "^6.36.5",
     "@clerk/themes": "^2.4.46",
     "@clerk/types": "^4.101.14",

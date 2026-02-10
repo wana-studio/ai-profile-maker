@@ -29,6 +29,9 @@ importers:
       '@capgo/capacitor-pay':
         specifier: ^8.0.5
         version: 8.0.5(@capacitor/core@8.0.0)
+      '@capgo/capacitor-social-login':
+        specifier: ^8.2.23
+        version: 8.2.23(@capacitor/core@8.0.0)
       '@clerk/nextjs':
         specifier: ^6.36.5
         version: 6.36.5(next@16.1.1(@babel/core@7.28.5)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -421,6 +424,11 @@ packages:
 
   '@capgo/capacitor-pay@8.0.5':
     resolution: {integrity: sha512-JO1yqCh2utKJl2gGNVe09arQ3BJ0EY99/smeRNxUO0/SsOUAG/YK3rJso9GPYGmFj7jAJWqtrGPzC/s/z1nacQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capgo/capacitor-social-login@8.2.23':
+    resolution: {integrity: sha512-nYy2wFhrH5HAkwGwnZOD17CoEIMn0nof0uMkztVmduENERnCYOE6+1qmbVmbpJ+pP5AjPUkn5ZgaEMg4S4SwNA==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -4566,6 +4574,10 @@ snapshots:
       '@capacitor/core': 8.0.0
 
   '@capgo/capacitor-pay@8.0.5(@capacitor/core@8.0.0)':
+    dependencies:
+      '@capacitor/core': 8.0.0
+
+  '@capgo/capacitor-social-login@8.2.23(@capacitor/core@8.0.0)':
     dependencies:
       '@capacitor/core': 8.0.0
 
