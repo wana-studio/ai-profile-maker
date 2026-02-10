@@ -95,9 +95,9 @@ export async function POST(req: NextRequest) {
       prompt += `\nGLASSES: ${options.glasses || "sun glasses"}`;
     // Run generation on Replicate
     // Using a placeholder model - replace with actual face-swap/enhancement model
-    const output = await replicate.run("openai/gpt-image-1.5", {
+    const output = await replicate.run("google/nano-banana-pro", {
       input: {
-        input_images: [faceProfile.imageUrl],
+        image_input: [faceProfile.imageUrl],
         prompt: prompt,
         aspect_ratio: options.aspectRatio || "3:2",
         quality: "medium",
