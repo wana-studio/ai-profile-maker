@@ -13,6 +13,7 @@ import {
   LogIn,
   Image,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +75,8 @@ export default function PhotoDetailPage({
   const posthog = usePostHog();
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { removePhoto } = useGalleryStore();
 
   // Find photo in store
   const photo = photos.find((p) => p.id === id);
@@ -328,6 +331,43 @@ export default function PhotoDetailPage({
     });
   };
 
+  const handleDelete = async () => {
+    if (!photo) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this photo? This action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    const loadingToast = toast.loading("Deleting photo...");
+
+    try {
+      const response = await fetch(`/api/photos/${photo.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete photo");
+      }
+
+      toast.dismiss(loadingToast);
+      toast.success("Photo deleted successfully");
+
+      // Remote from local store
+      removePhoto(photo.id);
+
+      // Redirect to gallery
+      router.push("/");
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Failed to delete photo");
+      setIsDeleting(false);
+    }
+  };
+
   // Photo not found
   if (!photo) {
     return (
@@ -391,6 +431,19 @@ export default function PhotoDetailPage({
                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                 ) : (
                   <Share2 className="w-5 h-5 text-white" />
+                )}
+              </button>
+
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="p-2 rounded-full bg-black/40 backdrop-blur-sm hover:bg-red-500/60 transition-colors disabled:opacity-50"
+                title="Delete photo"
+              >
+                {isDeleting ? (
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                ) : (
+                  <Trash2 className="w-5 h-5 text-white" />
                 )}
               </button>
             </div>

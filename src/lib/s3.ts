@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 
 // Initialize S3 client for Cloudflare R2
@@ -93,5 +93,40 @@ export async function downloadImage(url: string): Promise<{ buffer: Buffer; cont
     } catch (error) {
         console.error('Image download error:', error);
         throw new Error(`Failed to download image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
+
+/**
+ * Delete a file from S3/R2 storage
+ * @param url Public URL of the file to delete
+ */
+export async function deleteFromS3(url: string): Promise<void> {
+    try {
+        const customDomain = process.env.S3_CUSTOM_DOMAIN;
+        if (!customDomain) {
+            throw new Error('S3_CUSTOM_DOMAIN environment variable is not set');
+        }
+
+        const bucketName = process.env.S3_BUCKET_NAME!;
+        const baseUrl = customDomain.replace(/\/$/, '');
+        const prefix = `https://${baseUrl}/${bucketName}/`;
+
+        if (!url.startsWith(prefix)) {
+            console.warn(`URL ${url} does not match expected prefix ${prefix}. Skipping S3 deletion.`);
+            return;
+        }
+
+        const key = url.replace(prefix, '');
+
+        const command = new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+        });
+
+        await s3Client.send(command);
+    } catch (error) {
+        console.error('S3 delete error:', error);
+        // We don't throw here to avoid failing the whole transaction if storage deletion fails
+        // but the database record is already gone (though ideally we'd handle this better)
     }
 }
