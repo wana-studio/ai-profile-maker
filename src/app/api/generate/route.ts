@@ -100,7 +100,6 @@ export async function POST(req: NextRequest) {
         image_input: [faceProfile.imageUrl],
         prompt: prompt,
         aspect_ratio: options.aspectRatio || "3:2",
-        quality: "medium",
       },
     });
 

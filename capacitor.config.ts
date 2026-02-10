@@ -17,7 +17,7 @@ const config: CapacitorConfig = {
             offsetForKeyboardInsetBug: undefined,
         },
         StatusBar: {
-            style: "DARK",
+            style: "LIGHT",
         }
     }
 };
