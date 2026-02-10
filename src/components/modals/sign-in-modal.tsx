@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { SignIn, useUser } from "@clerk/nextjs";
@@ -14,6 +15,7 @@ type AuthMode = "signin" | "signup";
 export function SignInModal() {
   const { isSignInModalOpen, closeSignInModal } = useModalStore();
   const { isSignedIn } = useUser();
+  const router = useRouter();
   const [isCapacitor, setIsCapacitor] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("signin");
 
@@ -30,8 +32,10 @@ export function SignInModal() {
 
   const handleSuccess = () => {
     closeSignInModal();
-    // Refresh the page to update auth state
-    window.location.reload();
+    // Use router.refresh() instead of window.location.reload()
+    // This updates server components without a full navigation,
+    // preventing Clerk middleware from redirecting to hosted auth in Capacitor
+    router.refresh();
   };
 
   return (
