@@ -196,13 +196,13 @@ export default function CreatePage() {
       });
 
       // Navigate to gallery on success
-      router.push("/");
+      router.push("/app");
       reset();
     } catch (error) {
       console.error("Generation error:", error);
       // For demo, still navigate after delay
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      router.push("/");
+      router.push("/app");
       reset();
     } finally {
       setIsGenerating(false);

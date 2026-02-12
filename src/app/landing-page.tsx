@@ -137,7 +137,7 @@ export function LandingPage() {
             <nav
                 className={`landing-nav flex items-center justify-between ${scrolled ? "landing-nav-scrolled" : ""}`}
             >
-                <Link href="/home" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2">
                     <Image
                         src="/logo.png"
                         alt="selfio logo"
@@ -149,12 +149,12 @@ export function LandingPage() {
                 </Link>
                 <div className="flex items-center gap-3">
                     <Link
-                        href="/"
+                        href="/app"
                         className="text-white/70 hover:text-white text-sm font-medium transition-colors"
                     >
                         Log in
                     </Link>
-                    <Link href="/" className="cta-button cta-button-primary !py-2.5 !px-5 !text-sm">
+                    <Link href="/app" className="cta-button cta-button-primary !py-2.5 !px-5 !text-sm">
                         Try Free
                     </Link>
                 </div>
@@ -200,7 +200,7 @@ export function LandingPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.5, duration: 0.5, type: "spring" }}
                     >
-                        <Link href="/" className="cta-button cta-button-primary text-lg">
+                        <Link href="/app" className="cta-button cta-button-primary text-lg">
                             Start Free ✨
                         </Link>
                     </motion.div>
@@ -691,7 +691,7 @@ export function LandingPage() {
                     </FadeUp>
                     <FadeUp delay={0.3}>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <Link href="/" className="cta-button cta-button-primary">
+                            <Link href="/app" className="cta-button cta-button-primary">
                                 Get Started Free →
                             </Link>
                             <Link href="#how-it-works" className="cta-button cta-button-outline">
@@ -738,7 +738,7 @@ export function LandingPage() {
                     </FadeUp>
 
                     <FadeUp delay={0.3}>
-                        <Link href="/" className="cta-button cta-button-primary text-lg">
+                        <Link href="/app" className="cta-button cta-button-primary text-lg">
                             Start Free Today 🚀
                         </Link>
                     </FadeUp>

@@ -9,7 +9,7 @@ import { EnhancementModal } from "@/components/modals/enhancement-modal";
 import { SignInModal } from "@/components/modals/sign-in-modal";
 import { useModalStore } from "@/lib/stores";
 
-const protectedRoutes = ["/create", "/profile", "/gallery"];
+const protectedRoutes = ["/app/create", "/app/profile", "/app/gallery"];
 
 export default function MainLayout({
   children,

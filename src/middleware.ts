@@ -7,11 +7,20 @@ const isProtectedRoute = createRouteMatcher([
   "/create(.*)",
   "/profile(.*)",
   "/gallery(.*)",
+  "/app/create(.*)",
+  "/app/profile(.*)",
+  "/app/gallery(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
   const isProtected = isProtectedRoute(req);
+
+  // If accessing root and signed in, redirect to /app
+  if (req.nextUrl.pathname === "/" && userId) {
+    const url = new URL("/app", req.url);
+    return NextResponse.redirect(url);
+  }
 
   // If accessing a protected route without authentication
   if (isProtected && !userId) {

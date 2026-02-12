@@ -182,7 +182,7 @@ export default function GalleryPage() {
       styleCategory: photo.category,
       tier,
     });
-    router.push(`/gallery/${photo.id}`);
+    router.push(`/app/gallery/${photo.id}`);
   };
 
   const viewModes = [

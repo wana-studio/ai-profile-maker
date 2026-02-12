@@ -359,7 +359,7 @@ export default function PhotoDetailPage({
       removePhoto(photo.id);
 
       // Redirect to gallery
-      router.push("/");
+      router.push("/app");
     } catch (error) {
       console.error("Delete failed:", error);
       toast.dismiss(loadingToast);

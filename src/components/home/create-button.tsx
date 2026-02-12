@@ -6,7 +6,7 @@ import { Sparkles } from "lucide-react";
 
 export function CreateButton() {
   return (
-    <Link href="/create" className="fixed bottom-17 right-4 z-50">
+    <Link href="/app/create" className="fixed bottom-17 right-4 z-50">
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}

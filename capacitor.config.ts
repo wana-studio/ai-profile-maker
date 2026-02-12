@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
     appName: 'Selfio',
     webDir: 'public',
     server: {
-        url: 'https://selfio.social',
+        url: 'https://selfio.social/app',
         cleartext: true,
         allowNavigation: [
             'clerk.selfio.social',

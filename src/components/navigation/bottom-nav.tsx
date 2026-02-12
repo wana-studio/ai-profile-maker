@@ -10,12 +10,12 @@ import { cn } from "@/lib/utils";
 import { useModalStore } from "@/lib/stores";
 
 const tabs = [
-  { id: "gallery", label: "Gallery", icon: GalleryIcon, href: "/" },
-  { id: "create", label: "Create", icon: PlusCircleIcon, href: "/create" },
-  { id: "profile", label: "Profile", icon: UserIcon, href: "/profile" },
+  { id: "gallery", label: "Gallery", icon: GalleryIcon, href: "/app" },
+  { id: "create", label: "Create", icon: PlusCircleIcon, href: "/app/create" },
+  { id: "profile", label: "Profile", icon: UserIcon, href: "/app/profile" },
 ];
 
-const protectedRoutes = ["/create", "/profile", "/gallery"];
+const protectedRoutes = ["/app/create", "/app/profile", "/app/gallery"];
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -23,9 +23,9 @@ export function BottomNav() {
   const { openSignInModal } = useModalStore();
 
   const getActiveTab = () => {
-    if (pathname === "/" || pathname.startsWith("/gallery")) return "gallery";
-    if (pathname.startsWith("/create")) return "create";
-    if (pathname.startsWith("/profile")) return "profile";
+    if (pathname === "/app" || pathname.startsWith("/app/gallery")) return "gallery";
+    if (pathname.startsWith("/app/create")) return "create";
+    if (pathname.startsWith("/app/profile")) return "profile";
     return "gallery";
   };
 

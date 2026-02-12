@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Selfio",
         short_name: "Selfio",
         description: "Selfio, your Selfie Ai assistant",
-        start_url: "/",
+        start_url: "/app",
         display: "standalone",
         orientation: "portrait-primary",
         background_color: "#fe653d",
