@@ -13,8 +13,8 @@ dependencies {
     implementation project(':capacitor-file-transfer')
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-status-bar')
-    implementation project(':capgo-capacitor-pay')
     implementation project(':capgo-capacitor-social-login')
+    implementation project(':revenuecat-purchases-capacitor')
 
 }
 

@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { PostHogProvider } from "@/lib/posthog";
 import { Toaster } from "sonner";
+import { StatusBarConfig } from "@/components/status-bar-config";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -87,6 +88,7 @@ export default function RootLayout({
         <body className="antialiased min-h-screen bg-background text-foreground overflow-x-hidden">
           <PostHogProvider>{children}</PostHogProvider>
           <Toaster theme="dark" position="top-center" richColors />
+          <StatusBarConfig />
         </body>
       </html>
     </ClerkProvider>

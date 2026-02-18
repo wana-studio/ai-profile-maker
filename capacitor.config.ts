@@ -22,9 +22,7 @@ const config: CapacitorConfig = {
             initialViewportFitCover: undefined,
             offsetForKeyboardInsetBug: undefined,
         },
-        StatusBar: {
-            style: "DARK",
-        }
+
     }
 };
 
