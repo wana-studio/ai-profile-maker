@@ -82,8 +82,11 @@ export const generatedPhotos = pgTable('generated_photos', {
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
-  stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
-  stripePriceId: text('stripe_price_id').notNull(),
+  stripeSubscriptionId: text('stripe_subscription_id').unique(),
+  stripePriceId: text('stripe_price_id'),
+  // IAP fields
+  iapOriginalTransactionId: text('iap_original_transaction_id').unique(), // For Apple/Google
+  iapPlatform: text('iap_platform'), // 'ios' | 'android'
   status: subscriptionStatusEnum('status').notNull(),
   currentPeriodStart: timestamp('current_period_start', { withTimezone: true }).notNull(),
   currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }).notNull(),

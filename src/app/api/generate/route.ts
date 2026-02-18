@@ -6,6 +6,8 @@ import { eq, sql } from "drizzle-orm";
 import { uploadToS3, downloadImage } from "@/lib/s3";
 import { analyzeGeneratedPhoto } from "@/lib/ai-analysis";
 
+const PRO_USER_LIMIT = 50;
+const FREE_USER_LIMIT = 3;
 const baseContextPrompt =
   "Use the uploaded user photo as the primary identity reference. Preserve the person’s facial structure, skin tone, age, gender expression, and ethnicity accurately. Maintain photorealism. The final image must look like a high-end real photograph, not AI-generated.";
 const replicate = new Replicate({
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Check generation limits for free users
     if (user.subscriptionTier === "free") {
-      if (user.generationsThisMonth >= 3) {
+      if (user.generationsThisMonth >= FREE_USER_LIMIT) {
         return NextResponse.json(
           {
             error: "Generation limit reached",
@@ -43,6 +45,14 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
+    } else if (user.generationsThisMonth >= PRO_USER_LIMIT) {
+      return NextResponse.json(
+        {
+          error: "Generation limit reached",
+          upgrade: true,
+        },
+        { status: 403 }
+      );
     }
 
     // Get face profile
@@ -95,14 +105,36 @@ export async function POST(req: NextRequest) {
       prompt += `\nGLASSES: ${options.glasses || "sun glasses"}`;
     // Run generation on Replicate
     // Using a placeholder model - replace with actual face-swap/enhancement model
-    const output = await replicate.run("openai/gpt-image-1.5", {
-      input: {
-        input_images: [faceProfile.imageUrl],
-        prompt: prompt,
-        aspect_ratio: options.aspectRatio || "3:2",
-        quality: "high",
-      },
-    });
+    let output;
+    try {
+      output = await replicate.run("google/nano-banana-pro", {
+        input: {
+          image_input: [faceProfile.imageUrl],
+          prompt: prompt,
+          aspect_ratio: options.aspectRatio || "3:2",
+          quality: "high",
+        },
+      });
+    } catch (e) {
+      output = await replicate.run("openai/gpt-image-1.5", {
+        input: {
+          input_images: [faceProfile.imageUrl],
+          prompt: prompt,
+          aspect_ratio: options.aspectRatio || "3:2",
+          quality: "high",
+        },
+      });
+    }
+    if (!output) {
+      output = await replicate.run("openai/gpt-image-1.5", {
+        input: {
+          input_images: [faceProfile.imageUrl],
+          prompt: prompt,
+          aspect_ratio: options.aspectRatio || "3:2",
+          quality: "high",
+        },
+      });
+    }
 
     const replicateImageUrl = (
       Array.isArray(output) ? output[0] : output

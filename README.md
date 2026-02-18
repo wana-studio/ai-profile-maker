@@ -117,7 +117,7 @@ src/
 - Limited styles
 - Watermarked downloads
 
-### Pro ($9.99/month)
+### Pro ($8.99/month)
 - Unlimited generations
 - All 12+ style packs
 - No watermarks

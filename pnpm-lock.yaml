@@ -35,9 +35,6 @@ importers:
       '@capacitor/status-bar':
         specifier: ^8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
-      '@capgo/capacitor-pay':
-        specifier: ^8.0.5
-        version: 8.0.5(@capacitor/core@8.0.0)
       '@capgo/capacitor-social-login':
         specifier: ^8.2.23
         version: 8.2.23(@capacitor/core@8.0.0)
@@ -86,6 +83,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@revenuecat/purchases-capacitor':
+        specifier: ^12.1.2
+        version: 12.1.2(@capacitor/core@8.0.0)
       '@stripe/stripe-js':
         specifier: ^8.6.0
         version: 8.6.0
@@ -451,11 +451,6 @@ packages:
 
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
-
-  '@capgo/capacitor-pay@8.0.5':
-    resolution: {integrity: sha512-JO1yqCh2utKJl2gGNVe09arQ3BJ0EY99/smeRNxUO0/SsOUAG/YK3rJso9GPYGmFj7jAJWqtrGPzC/s/z1nacQ==}
-    peerDependencies:
-      '@capacitor/core': '>=8.0.0'
 
   '@capgo/capacitor-social-login@8.2.23':
     resolution: {integrity: sha512-nYy2wFhrH5HAkwGwnZOD17CoEIMn0nof0uMkztVmduENERnCYOE6+1qmbVmbpJ+pP5AjPUkn5ZgaEMg4S4SwNA==}
@@ -1580,6 +1575,14 @@ packages:
 
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
+
+  '@revenuecat/purchases-capacitor@12.1.2':
+    resolution: {integrity: sha512-OgTP8EguIqqdStjzkUutObIVSJCSVT1Zg9GujuV7650V0mfuE6Zg9XdGN0O4vrQVNqFIlxmWZozF4VXJaLDQUQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@revenuecat/purchases-typescript-internal-esm@17.33.1':
+    resolution: {integrity: sha512-calfKKITb1CWFSfaUuBfXbPffFN5AP1hdx5/fGLOM+21j9R+2RgfmJe3fSY195upekiVKOLE/bk6GyeVfz1lIQ==}
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -4625,10 +4628,6 @@ snapshots:
 
   '@capacitor/synapse@1.0.4': {}
 
-  '@capgo/capacitor-pay@8.0.5(@capacitor/core@8.0.0)':
-    dependencies:
-      '@capacitor/core': 8.0.0
-
   '@capgo/capacitor-social-login@8.2.23(@capacitor/core@8.0.0)':
     dependencies:
       '@capacitor/core': 8.0.0
@@ -5590,6 +5589,13 @@ snapshots:
       '@types/react-dom': 19.2.3(@types/react@19.2.7)
 
   '@radix-ui/rect@1.1.1': {}
+
+  '@revenuecat/purchases-capacitor@12.1.2(@capacitor/core@8.0.0)':
+    dependencies:
+      '@capacitor/core': 8.0.0
+      '@revenuecat/purchases-typescript-internal-esm': 17.33.1
+
+  '@revenuecat/purchases-typescript-internal-esm@17.33.1': {}
 
   '@rtsao/scc@1.1.0': {}
 

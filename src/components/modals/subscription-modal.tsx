@@ -6,6 +6,7 @@ import { X, Check, Sparkles, Zap, Crown, Shield, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useModalStore, useSubscriptionStore } from "@/lib/stores";
 import { trackEvent, usePostHog } from "@/lib/posthog";
+import { useIAP } from "@/hooks/use-iap";
 
 const proFeatures = [
   {
@@ -34,6 +35,7 @@ export function SubscriptionModal() {
   const { isSubscriptionModalOpen, closeSubscriptionModal } = useModalStore();
   const { tier, generationsRemaining } = useSubscriptionStore();
   const posthog = usePostHog();
+  const { purchase, isNative, loading: iapLoading } = useIAP();
   const [isLoading, setIsLoading] = useState(false);
 
   // Track modal opened
@@ -47,6 +49,11 @@ export function SubscriptionModal() {
   }, [isSubscriptionModalOpen, posthog, tier, generationsRemaining]);
 
   const handleSubscribe = async () => {
+    if (isNative) {
+      purchase();
+      return;
+    }
+
     setIsLoading(true);
 
     // Track checkout initiated
@@ -186,21 +193,21 @@ export function SubscriptionModal() {
                 {/* CTA */}
                 <Button
                   onClick={handleSubscribe}
-                  disabled={isLoading}
+                  disabled={isLoading || iapLoading}
                   className="w-full h-14 text-lg font-semibold gradient-warm hover:opacity-90 transition-opacity disabled:opacity-70"
                 >
-                  {isLoading ? (
+                  {isLoading || iapLoading ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                       Processing...
                     </>
                   ) : (
-                    "Start Pro Trial"
+                    "Start Pro"
                   )}
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground mt-4">
-                  7-day free trial • Then $8.99/month
+                  $8.99/month
                 </p>
               </div>
             </div>

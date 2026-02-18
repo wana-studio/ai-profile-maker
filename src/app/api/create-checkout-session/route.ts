@@ -47,7 +47,6 @@ export async function POST() {
                 metadata: {
                     userId,
                 },
-                trial_period_days: 7, // 7-day free trial
             },
         });
 
