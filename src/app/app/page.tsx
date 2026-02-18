@@ -199,7 +199,7 @@ export default function GalleryPage() {
   // Calculate progress values
   const FREE_MONTHLY_LIMIT = 3;
   const isPro = tier === "pro";
-  const maxGenerations = isPro ? 500 : FREE_MONTHLY_LIMIT;
+  const maxGenerations = isPro ? 50 : FREE_MONTHLY_LIMIT;
   const usedGenerations = isPro ? generationsThisMonth : generationsThisMonth;
   const remainingGenerations = maxGenerations - usedGenerations;
   const progressValue = isPro
@@ -212,7 +212,7 @@ export default function GalleryPage() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl safe-area-top">
         <div className="grid grid-cols-[1fr_auto_1fr] px-4 py-3">
           <div className="flex items-center justify-start">
-            {isSignedIn && !isPro && (
+            {isSignedIn && (
               <div className="bg-foreground/10 rounded-full p-1 h-[36px] flex items-center justify-center gap-1">
                 <div className="size-[24px] flex items-center justify-center overflow-hidden">
                   <CircularProgress

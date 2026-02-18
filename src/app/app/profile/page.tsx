@@ -288,7 +288,7 @@ export default function ProfilePage() {
                 </h3>
                 <p className="text-sm text-white/70">
                   {isPro
-                    ? "Unlimited access"
+                    ? "50 generations left"
                     : `${generationsRemaining} generations left`}
                 </p>
               </div>

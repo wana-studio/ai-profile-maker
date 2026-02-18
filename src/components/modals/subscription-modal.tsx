@@ -16,8 +16,8 @@ const proFeatures = [
   },
   {
     icon: Zap,
-    label: "Unlimited generations",
-    description: "No monthly limits",
+    label: "50 generations",
+    description: "Per month",
   },
   {
     icon: Crown,

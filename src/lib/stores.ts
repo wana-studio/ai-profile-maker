@@ -15,7 +15,7 @@ interface SubscriptionState {
 
 export const useSubscriptionStore = create<SubscriptionState>((set) => ({
   tier: "free",
-  generationsRemaining: 5,
+  generationsRemaining: 3,
   generationsThisMonth: 0,
   isLoading: true,
   setTier: (tier) => set({ tier }),

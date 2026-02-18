@@ -25,11 +25,11 @@ export async function GET() {
             });
         }
 
-        // For pro users, they have unlimited generations
-        // For free users, calculate remaining from monthly limit (5)
-        const FREE_MONTHLY_LIMIT = 5;
+        // For pro users, they have 50 generations
+        // For free users, calculate remaining from monthly limit (3)
+        const FREE_MONTHLY_LIMIT = 3;
         const generationsRemaining = user.subscriptionTier === 'pro'
-            ? Infinity
+            ? 50
             : Math.max(0, FREE_MONTHLY_LIMIT - (user.generationsThisMonth || 0));
 
         return NextResponse.json({
