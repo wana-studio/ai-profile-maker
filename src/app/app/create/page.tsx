@@ -13,8 +13,8 @@ import {
   useCreateFlowStore,
   useFaceProfilesStore,
   useSubscriptionStore,
-  useModalStore,
 } from "@/lib/stores";
+import { useIAP } from "@/hooks/use-iap";
 import { useRouter } from "next/navigation";
 import type { Style } from "@/lib/db/schema";
 import { trackEvent, usePostHog } from "@/lib/posthog";
@@ -26,7 +26,7 @@ export default function CreatePage() {
   const { isSignedIn, isLoaded } = useUser();
   const { tier } = useSubscriptionStore();
   const { profiles, setProfiles } = useFaceProfilesStore();
-  const { openSubscriptionModal } = useModalStore();
+  const { presentPaywall } = useIAP();
   const posthog = usePostHog();
   const {
     step,
@@ -170,7 +170,7 @@ export default function CreatePage() {
       if (!response.ok) {
         const error = await response.json();
         if (error.upgrade) {
-          openSubscriptionModal();
+          presentPaywall();
         }
 
         // Track generation failed
@@ -309,7 +309,7 @@ export default function CreatePage() {
                     styleCategory: style.category,
                     tier,
                   });
-                  openSubscriptionModal();
+                  presentPaywall();
                 }}
                 isPro={isPro}
               />

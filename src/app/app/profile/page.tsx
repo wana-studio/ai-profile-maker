@@ -34,7 +34,6 @@ import {
 import {
   useSubscriptionStore,
   useFaceProfilesStore,
-  useModalStore,
 } from "@/lib/stores";
 import type { FaceProfile } from "@/lib/db/schema";
 import { useIAP } from "@/hooks/use-iap";
@@ -49,7 +48,7 @@ export default function ProfilePage() {
     setGenerationsThisMonth,
   } = useSubscriptionStore();
   const { profiles, setProfiles, removeProfile } = useFaceProfilesStore();
-  const { openSubscriptionModal } = useModalStore();
+
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -180,7 +179,7 @@ export default function ProfilePage() {
     }
   };
 
-  const { isNative, presentCustomerCenter } = useIAP();
+  const { isNative, presentCustomerCenter, presentPaywall } = useIAP();
 
   const handleManageSubscription = async () => {
     if (isNative) {
@@ -331,7 +330,7 @@ export default function ProfilePage() {
 
           {!isPro && (
             <Button
-              onClick={() => openSubscriptionModal()}
+              onClick={() => presentPaywall()}
               className="w-full bg-white text-black hover:bg-white/90 font-semibold"
             >
               <Star className="w-4 h-4 mr-2" />

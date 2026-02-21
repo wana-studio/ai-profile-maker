@@ -89,6 +89,9 @@ importers:
       '@revenuecat/purchases-capacitor-ui':
         specifier: ^12.1.2
         version: 12.1.2(@capacitor/core@8.0.0)
+      '@revenuecat/purchases-js':
+        specifier: ^1.26.2
+        version: 1.26.2
       '@stripe/stripe-js':
         specifier: ^8.6.0
         version: 8.6.0
@@ -1593,6 +1596,9 @@ packages:
     resolution: {integrity: sha512-OgTP8EguIqqdStjzkUutObIVSJCSVT1Zg9GujuV7650V0mfuE6Zg9XdGN0O4vrQVNqFIlxmWZozF4VXJaLDQUQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
+
+  '@revenuecat/purchases-js@1.26.2':
+    resolution: {integrity: sha512-10k0LL3cmlxe9gN2GfXBLmLR3ZtnQN7wKpDxzJn/JtRSC0Sq12+/msCIuAiBYRP1CKJv8JAVVEyvYufMDqVf9A==}
 
   '@revenuecat/purchases-typescript-internal-esm@14.3.0':
     resolution: {integrity: sha512-7mkuBupATfPvBw+skTE/chY6UEux9ZidTbKBOcZ/MgALKJdcww7LgSbChdyoGdQlSJXBFf1zRPzHH+RB7y+LQA==}
@@ -5621,6 +5627,8 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.0.0
       '@revenuecat/purchases-typescript-internal-esm': 17.33.1
+
+  '@revenuecat/purchases-js@1.26.2': {}
 
   '@revenuecat/purchases-typescript-internal-esm@14.3.0': {}
 

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shirt, Sparkles, Sun, Zap, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useModalStore, useSubscriptionStore } from '@/lib/stores';
+import { useIAP } from '@/hooks/use-iap';
 
 const enhancementOptions = [
     {
@@ -41,14 +42,15 @@ interface EnhancementModalProps {
 }
 
 export function EnhancementModal({ onEnhance }: EnhancementModalProps) {
-    const { isEnhancementModalOpen, closeEnhancementModal, selectedPhotoForEnhancement, openSubscriptionModal } = useModalStore();
+    const { isEnhancementModalOpen, closeEnhancementModal, selectedPhotoForEnhancement } = useModalStore();
     const { tier } = useSubscriptionStore();
+    const { presentPaywall } = useIAP();
     const isPro = tier === 'pro';
 
     const handleEnhanceClick = (optionId: string, isPremium: boolean) => {
         if (isPremium && !isPro) {
             closeEnhancementModal();
-            openSubscriptionModal();
+            presentPaywall();
             return;
         }
         onEnhance?.(optionId);
@@ -111,8 +113,8 @@ export function EnhancementModal({ onEnhance }: EnhancementModalProps) {
                                             transition={{ delay: index * 0.05 }}
                                             onClick={() => handleEnhanceClick(option.id, option.premium)}
                                             className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-colors ${isLocked
-                                                    ? 'bg-white/5 opacity-60'
-                                                    : 'bg-white/5 hover:bg-white/10'
+                                                ? 'bg-white/5 opacity-60'
+                                                : 'bg-white/5 hover:bg-white/10'
                                                 }`}
                                         >
                                             <div className={`p-2 rounded-xl ${isLocked ? 'bg-secondary' : 'gradient-secondary'}`}>

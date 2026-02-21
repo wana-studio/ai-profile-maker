@@ -1,157 +1,213 @@
-import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
-import {
-    Purchases,
-    PurchasesOfferings,
-    CustomerInfo,
-    PACKAGE_TYPE,
-    PAYWALL_RESULT,
-} from "@revenuecat/purchases-capacitor";
-import { RevenueCatUI } from "@revenuecat/purchases-capacitor-ui";
-import { toast } from "sonner";
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { toast } from 'sonner';
 
 // RevenueCat API Keys
-const API_KEY_IOS =
-    process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ||
-    "test_jDFNpsjMpVLkmoeypMJnKASSvdg";
-const API_KEY_ANDROID =
-    process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ||
-    "goog_MtmMPpKPEdQPXrNndMkdALAGgze";
+const RC_API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY || 'test_jDFNpsjMpVLkmoeypMJnKASSvdg';
 
-const ENTITLEMENT_ID = "Selfio Pro"; // The entitlement identifier in RevenueCat dashboard
-
-export interface IAPProduct {
-    id: string;
-    title: string;
-    description: string;
-    price: string;
-    currency: string;
-    owned: boolean;
-}
+const ENTITLEMENT_ID = 'Selfio Pro'; // The entitlement identifier in RevenueCat dashboard
 
 export function useIAP() {
-    const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
-    const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
     const [loading, setLoading] = useState(false);
+    const [hasPro, setHasPro] = useState(false);
     const [isNative] = useState(() => Capacitor.isNativePlatform());
+    const initializedRef = useRef(false);
 
     useEffect(() => {
-        if (!isNative) return;
+        if (initializedRef.current) return;
+        initializedRef.current = true;
 
-        const initRevenueCat = async () => {
-            try {
-                const platform = Capacitor.getPlatform();
-                const apiKey = platform === "ios" ? API_KEY_IOS : API_KEY_ANDROID;
-
-                console.log("Configuring with api key", apiKey);
-                await Purchases.configure({ apiKey });
-
-                // Load offerings
-                const offerings = await Purchases.getOfferings();
-                setOfferings(offerings);
-                console.log("OFFERINGS", offerings);
-
-                // Get initial customer info
-                const { customerInfo } = await Purchases.getCustomerInfo();
-                setCustomerInfo(customerInfo);
-                console.log("CUSTOMER INFO", customerInfo);
-
-                // Listen for updates
-                Purchases.addCustomerInfoUpdateListener((info) => {
-                    setCustomerInfo(info);
-                    checkEntitlement(info);
-                });
-            } catch (error) {
-                console.error("Failed to initialize RevenueCat:", error);
-            }
-        };
-
-        initRevenueCat();
-
-        return () => {
-            // Cleanup listener if possible
-        };
+        if (isNative) {
+            initNative();
+        }
+        // Web SDK is initialized on-demand in presentPaywall
     }, [isNative]);
 
-    const checkEntitlement = async (info: CustomerInfo) => {
-        // We rely on the webhook to sync with the backend.
-        // The client-side state is sufficient for immediate UI access (Optimistic UI).
-        // If we strictly needed to sync immediately, we would call an endpoint that fetches from RC server-side.
+    // ─────────────────────────────────────────────
+    // Native (Capacitor) initialization
+    // ─────────────────────────────────────────────
+    const initNative = async () => {
+        try {
+            const { Purchases } = await import('@revenuecat/purchases-capacitor');
+            await Purchases.configure({ apiKey: RC_API_KEY });
+
+            const { customerInfo } = await Purchases.getCustomerInfo();
+            updateProStatus(customerInfo);
+
+            Purchases.addCustomerInfoUpdateListener((info) => {
+                updateProStatus(info);
+            });
+        } catch (error) {
+            console.error('Failed to initialize RevenueCat (native):', error);
+        }
     };
 
-    const presentPaywall = async () => {
-        if (!isNative) {
-            toast.error("Paywall available only on mobile app");
-            return;
-        }
+    // ─────────────────────────────────────────────
+    // Unified pro status check
+    // ─────────────────────────────────────────────
+    const updateProStatus = (customerInfo: any) => {
+        const isPro = typeof customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] !== 'undefined'
+            && customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] !== undefined;
+        setHasPro(isPro);
+    };
 
+    // ─────────────────────────────────────────────
+    // Sync subscription status with our backend
+    // ─────────────────────────────────────────────
+    const syncSubscriptionToBackend = async (isPro: boolean) => {
         try {
-            const { result: paywallResult } = await RevenueCatUI.presentPaywall({
+            await fetch('/api/webhooks/revenuecat/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isPro }),
+            });
+        } catch (error) {
+            console.error('Failed to sync subscription to backend:', error);
+        }
+    };
+
+    // ─────────────────────────────────────────────
+    // Present Paywall (works on both web and native)
+    // ─────────────────────────────────────────────
+    const presentPaywall = useCallback(async () => {
+        if (isNative) {
+            return presentNativePaywall();
+        } else {
+            return presentWebPaywall();
+        }
+    }, [isNative]);
+
+    // ─────────────────────────────────────────────
+    // Native Paywall (RevenueCatUI)
+    // ─────────────────────────────────────────────
+    const presentNativePaywall = async () => {
+        try {
+            setLoading(true);
+            const { RevenueCatUI } = await import('@revenuecat/purchases-capacitor-ui');
+            const { Purchases } = await import('@revenuecat/purchases-capacitor');
+
+            const paywallResult = await RevenueCatUI.presentPaywall({
                 displayCloseButton: true,
             });
 
-            // If they purchased, the CustomerInfo listener will fire and update state
-            if (
-                paywallResult === PAYWALL_RESULT.PURCHASED ||
-                paywallResult === PAYWALL_RESULT.RESTORED
-            ) {
-                // The listener in useEffect will handle the update
+            // Check result by casting (enum from capacitor-ui)
+            if ((paywallResult as any) === "PURCHASED" || (paywallResult as any) === "RESTORED") {
                 const { customerInfo } = await Purchases.getCustomerInfo();
-                await checkEntitlement(customerInfo);
+                updateProStatus(customerInfo);
+                await syncSubscriptionToBackend(true);
+                toast.success('Subscription activated!');
                 window.location.reload();
             }
         } catch (error: any) {
-            console.error("Paywall error:", error);
-        }
-    };
-
-    const presentCustomerCenter = async () => {
-        if (!isNative) return;
-        try {
-            await RevenueCatUI.presentCustomerCenter();
-        } catch (error) {
-            console.error("Customer Center error:", error);
-            // Fallback to manage subscription normally if needed, but Customer Center usually handles it
-        }
-    };
-
-    // Legacy purchase method kept for reference or custom UI fallbacks
-    const purchase = async () => {
-        // ... (can be deprecated in favor of Paywall)
-        await presentPaywall();
-    };
-
-    const restorePurchases = async () => {
-        if (!isNative) return;
-        try {
-            setLoading(true);
-            const { customerInfo } = await Purchases.restorePurchases();
-            setCustomerInfo(customerInfo);
-            if (
-                typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined"
-            ) {
-                toast.success("Purchases restored!");
-                await checkEntitlement(customerInfo);
-                window.location.reload();
-            } else {
-                toast.info("No active subscription found to restore.");
+            if (!error?.userCancelled) {
+                console.error("Native paywall error:", error);
             }
-        } catch (e: any) {
-            toast.error("Restore failed: " + e.message);
         } finally {
             setLoading(false);
         }
     };
 
+    // ─────────────────────────────────────────────
+    // Web Paywall (purchases-js)
+    // ─────────────────────────────────────────────
+    const presentWebPaywall = async () => {
+        try {
+            setLoading(true);
+            const { Purchases } = await import('@revenuecat/purchases-js');
+
+            // purchases-js requires an appUserId. We use $RCAnonymousID or Clerk user ID.
+            // For simplicity, configure with a generated anonymous ID.
+            // In production, you should use the Clerk user ID for cross-platform consistency.
+            let appUserId = localStorage.getItem('rc_app_user_id');
+            if (!appUserId) {
+                appUserId = `web_${crypto.randomUUID()}`;
+                localStorage.setItem('rc_app_user_id', appUserId);
+            }
+
+            const purchases = Purchases.configure({ apiKey: RC_API_KEY, appUserId });
+
+            const result = await purchases.presentPaywall({});
+
+            // result is PaywallPurchaseResult with customerInfo
+            if (result?.customerInfo) {
+                updateProStatus(result.customerInfo);
+                await syncSubscriptionToBackend(true);
+                toast.success('Subscription activated!');
+                window.location.reload();
+            }
+        } catch (error: any) {
+            // UserCancelledError means user closed the paywall — don't show error
+            if (error?.errorCode !== 'UserCancelledError' && error?.code !== 'UserCancelledError') {
+                console.error("Web paywall error:", error);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ─────────────────────────────────────────────
+    // Customer Center (manage subscription)
+    // ─────────────────────────────────────────────
+    const presentCustomerCenter = useCallback(async () => {
+        if (isNative) {
+            try {
+                const { RevenueCatUI } = await import('@revenuecat/purchases-capacitor-ui');
+                await RevenueCatUI.presentCustomerCenter();
+            } catch (error) {
+                console.error("Customer Center error:", error);
+            }
+        } else {
+            // On web, redirect to Stripe portal as fallback 
+            // (RevenueCat web doesn't have a Customer Center yet)
+            try {
+                const res = await fetch("/api/create-portal-session", {
+                    method: "POST",
+                });
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    toast.error("Failed to open subscription management");
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error("Failed to open subscription settings");
+            }
+        }
+    }, [isNative]);
+
+    // ─────────────────────────────────────────────
+    // Restore Purchases
+    // ─────────────────────────────────────────────
+    const restorePurchases = useCallback(async () => {
+        if (!isNative) return;
+        try {
+            setLoading(true);
+            const { Purchases } = await import('@revenuecat/purchases-capacitor');
+            const { customerInfo } = await Purchases.restorePurchases();
+            updateProStatus(customerInfo);
+            if (customerInfo?.entitlements?.active?.[ENTITLEMENT_ID]) {
+                toast.success('Purchases restored!');
+                await syncSubscriptionToBackend(true);
+                window.location.reload();
+            } else {
+                toast.info('No active subscription found to restore.');
+            }
+        } catch (e: any) {
+            toast.error('Restore failed: ' + e.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [isNative]);
+
     return {
         isNative,
         loading,
-        purchase,
-        restorePurchases,
+        hasPro,
         presentPaywall,
         presentCustomerCenter,
-        hasPro: customerInfo
-            ? typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined"
-            : false,
+        restorePurchases,
+        // Legacy alias
+        purchase: presentPaywall,
     };
 }
