@@ -37,6 +37,7 @@ import {
   useModalStore,
 } from "@/lib/stores";
 import type { FaceProfile } from "@/lib/db/schema";
+import { useIAP } from "@/hooks/use-iap";
 
 export default function ProfilePage() {
   const { isSignedIn, isLoaded, user } = useUser();
@@ -179,6 +180,36 @@ export default function ProfilePage() {
     }
   };
 
+  const { isNative, presentCustomerCenter } = useIAP();
+
+  const handleManageSubscription = async () => {
+    if (isNative) {
+      await presentCustomerCenter();
+      return;
+    }
+
+    const loadingToast = toast.loading("Redirecting to subscription portal...");
+
+    try {
+      const res = await fetch("/api/create-portal-session", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Failed to create portal session");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to open subscription settings");
+    } finally {
+      toast.dismiss(loadingToast);
+    }
+  };
+
   // Loading state
   if (!isLoaded) {
     return (
@@ -311,6 +342,7 @@ export default function ProfilePage() {
           {isPro && (
             <Button
               variant="ghost"
+              onClick={handleManageSubscription}
               className="w-full text-white/80 hover:text-white hover:bg-white/10"
             >
               <CreditCard className="w-4 h-4 mr-2" />

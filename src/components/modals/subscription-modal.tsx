@@ -35,22 +35,31 @@ export function SubscriptionModal() {
   const { isSubscriptionModalOpen, closeSubscriptionModal } = useModalStore();
   const { tier, generationsRemaining } = useSubscriptionStore();
   const posthog = usePostHog();
-  const { purchase, isNative, loading: iapLoading } = useIAP();
+  const { purchase, presentPaywall, isNative, loading: iapLoading } = useIAP();
   const [isLoading, setIsLoading] = useState(false);
 
   // Track modal opened
   useEffect(() => {
     if (isSubscriptionModalOpen) {
+      if (isNative) {
+        // Optionally auto-show paywall when modal opens on native?
+        // For now, we will let the user click "Start Pro" to trigger it, mimicking the web flow.
+        // Or we can simple trigger it here and close our modal if desired.
+        // Let's keep it manual trigger for better UX control unless requested otherwise.
+      }
+
       trackEvent("subscription_modal_opened", {
         currentTier: tier,
         generationsRemaining,
       });
     }
-  }, [isSubscriptionModalOpen, posthog, tier, generationsRemaining]);
+  }, [isSubscriptionModalOpen, posthog, tier, generationsRemaining, isNative]);
 
   const handleSubscribe = async () => {
     if (isNative) {
-      purchase();
+      // Show RevenueCat Paywall
+      await presentPaywall();
+      // If successful, the hook handles reload.
       return;
     }
 

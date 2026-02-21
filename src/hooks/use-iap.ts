@@ -1,13 +1,24 @@
-import { useEffect, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { Purchases, PurchasesOfferings, CustomerInfo, PACKAGE_TYPE } from '@revenuecat/purchases-capacitor';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
+import {
+    Purchases,
+    PurchasesOfferings,
+    CustomerInfo,
+    PACKAGE_TYPE,
+    PAYWALL_RESULT,
+} from "@revenuecat/purchases-capacitor";
+import { RevenueCatUI } from "@revenuecat/purchases-capacitor-ui";
+import { toast } from "sonner";
 
 // RevenueCat API Keys
-const API_KEY_IOS = 'appl_...'; // Replace with your actual RC iOS Key
-const API_KEY_ANDROID = 'goog_...'; // Replace with your actual RC Android Key
+const API_KEY_IOS =
+    process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ||
+    "test_jDFNpsjMpVLkmoeypMJnKASSvdg";
+const API_KEY_ANDROID =
+    process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ||
+    "goog_MtmMPpKPEdQPXrNndMkdALAGgze";
 
-const ENTITLEMENT_ID = 'pro'; // The entitlement identifier in RevenueCat dashboard
+const ENTITLEMENT_ID = "Selfio Pro"; // The entitlement identifier in RevenueCat dashboard
 
 export interface IAPProduct {
     id: string;
@@ -30,92 +41,84 @@ export function useIAP() {
         const initRevenueCat = async () => {
             try {
                 const platform = Capacitor.getPlatform();
-                const apiKey = platform === 'ios' ? API_KEY_IOS : API_KEY_ANDROID;
+                const apiKey = platform === "ios" ? API_KEY_IOS : API_KEY_ANDROID;
 
+                console.log("Configuring with api key", apiKey);
                 await Purchases.configure({ apiKey });
 
                 // Load offerings
                 const offerings = await Purchases.getOfferings();
                 setOfferings(offerings);
+                console.log("OFFERINGS", offerings);
 
                 // Get initial customer info
                 const { customerInfo } = await Purchases.getCustomerInfo();
                 setCustomerInfo(customerInfo);
+                console.log("CUSTOMER INFO", customerInfo);
 
                 // Listen for updates
                 Purchases.addCustomerInfoUpdateListener((info) => {
                     setCustomerInfo(info);
                     checkEntitlement(info);
                 });
-
             } catch (error) {
-                console.error('Failed to initialize RevenueCat:', error);
+                console.error("Failed to initialize RevenueCat:", error);
             }
         };
 
         initRevenueCat();
 
         return () => {
-            // Cleanup listener if possible (SDK doesn't expose easy removal for simple use cases usually, but it's fine)
+            // Cleanup listener if possible
         };
     }, [isNative]);
 
     const checkEntitlement = async (info: CustomerInfo) => {
-        const isPro = typeof info.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
-
-        if (isPro) {
-            // Sync with our backend
-            try {
-                await fetch('/api/webhooks/revenuecat/sync', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        appUserId: await Purchases.getAppUserID(),
-                        isPro: true
-                    }),
-                });
-                // We can reload or trigger a global state update here
-            } catch (e) {
-                console.error('Failed to sync entitlement with backend', e);
-            }
-        }
+        // We rely on the webhook to sync with the backend.
+        // The client-side state is sufficient for immediate UI access (Optimistic UI).
+        // If we strictly needed to sync immediately, we would call an endpoint that fetches from RC server-side.
     };
 
-    const purchase = async () => {
+    const presentPaywall = async () => {
         if (!isNative) {
-            toast.error('Available only on mobile app');
-            return;
-        }
-
-        if (!offerings?.current) {
-            toast.error('No offerings available yet');
+            toast.error("Paywall available only on mobile app");
             return;
         }
 
         try {
-            setLoading(true);
-            const pkg = offerings.current.monthly; // Assuming monthly package
-            if (!pkg) {
-                throw new Error("No monthly package found");
-            }
+            const { result: paywallResult } = await RevenueCatUI.presentPaywall({
+                displayCloseButton: true,
+            });
 
-            const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
-
-            setCustomerInfo(customerInfo);
-
-            if (typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== 'undefined') {
-                toast.success('Subscription activated!');
+            // If they purchased, the CustomerInfo listener will fire and update state
+            if (
+                paywallResult === PAYWALL_RESULT.PURCHASED ||
+                paywallResult === PAYWALL_RESULT.RESTORED
+            ) {
+                // The listener in useEffect will handle the update
+                const { customerInfo } = await Purchases.getCustomerInfo();
                 await checkEntitlement(customerInfo);
                 window.location.reload();
             }
-
         } catch (error: any) {
-            if (!error.userCancelled) {
-                toast.error('Purchase failed: ' + error.message);
-            }
-        } finally {
-            setLoading(false);
+            console.error("Paywall error:", error);
         }
+    };
+
+    const presentCustomerCenter = async () => {
+        if (!isNative) return;
+        try {
+            await RevenueCatUI.presentCustomerCenter();
+        } catch (error) {
+            console.error("Customer Center error:", error);
+            // Fallback to manage subscription normally if needed, but Customer Center usually handles it
+        }
+    };
+
+    // Legacy purchase method kept for reference or custom UI fallbacks
+    const purchase = async () => {
+        // ... (can be deprecated in favor of Paywall)
+        await presentPaywall();
     };
 
     const restorePurchases = async () => {
@@ -124,15 +127,17 @@ export function useIAP() {
             setLoading(true);
             const { customerInfo } = await Purchases.restorePurchases();
             setCustomerInfo(customerInfo);
-            if (typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== 'undefined') {
-                toast.success('Purchases restored!');
+            if (
+                typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined"
+            ) {
+                toast.success("Purchases restored!");
                 await checkEntitlement(customerInfo);
                 window.location.reload();
             } else {
-                toast.info('No active subscription found to restore.');
+                toast.info("No active subscription found to restore.");
             }
         } catch (e: any) {
-            toast.error('Restore failed: ' + e.message);
+            toast.error("Restore failed: " + e.message);
         } finally {
             setLoading(false);
         }
@@ -143,6 +148,10 @@ export function useIAP() {
         loading,
         purchase,
         restorePurchases,
-        hasPro: customerInfo ? typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined" : false
+        presentPaywall,
+        presentCustomerCenter,
+        hasPro: customerInfo
+            ? typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined"
+            : false,
     };
 }

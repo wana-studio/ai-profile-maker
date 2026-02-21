@@ -125,6 +125,28 @@ export async function POST(req: Request) {
                 }
                 break;
             }
+
+            case 'invoice.payment_succeeded': {
+                const invoice = event.data.object as any;
+                const subscriptionId = invoice.subscription as string;
+
+                if (subscriptionId) {
+                    const subscription = await db.query.subscriptions.findFirst({
+                        where: eq(subscriptions.stripeSubscriptionId, subscriptionId),
+                    });
+
+                    if (subscription) {
+                        await db.update(users)
+                            .set({
+                                generationsThisMonth: 0,
+                                generationsResetAt: new Date(),
+                                updatedAt: new Date(),
+                            })
+                            .where(eq(users.id, subscription.userId));
+                    }
+                }
+                break;
+            }
         }
     } catch (err) {
         console.error('Error processing webhook:', err);
