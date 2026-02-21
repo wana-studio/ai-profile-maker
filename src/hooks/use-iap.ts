@@ -3,7 +3,10 @@ import { Capacitor } from '@capacitor/core';
 import { toast } from 'sonner';
 
 // RevenueCat API Keys
-const RC_API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY || 'test_jDFNpsjMpVLkmoeypMJnKASSvdg';
+// Native (mobile) key — starts with appl_/goog_/test_
+const RC_NATIVE_API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY || 'test_jDFNpsjMpVLkmoeypMJnKASSvdg';
+// Web Billing key — starts with rcb_ (get from RevenueCat Dashboard → Project Settings → Apps → Web)
+const RC_WEB_API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY || '';
 
 const ENTITLEMENT_ID = 'Selfio Pro'; // The entitlement identifier in RevenueCat dashboard
 
@@ -29,7 +32,7 @@ export function useIAP() {
     const initNative = async () => {
         try {
             const { Purchases } = await import('@revenuecat/purchases-capacitor');
-            await Purchases.configure({ apiKey: RC_API_KEY });
+            await Purchases.configure({ apiKey: RC_NATIVE_API_KEY });
 
             const { customerInfo } = await Purchases.getCustomerInfo();
             updateProStatus(customerInfo);
@@ -124,7 +127,7 @@ export function useIAP() {
                 localStorage.setItem('rc_app_user_id', appUserId);
             }
 
-            const purchases = Purchases.configure({ apiKey: RC_API_KEY, appUserId });
+            const purchases = Purchases.configure({ apiKey: RC_WEB_API_KEY, appUserId });
 
             const result = await purchases.presentPaywall({});
 
