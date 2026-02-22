@@ -8,6 +8,7 @@ import { useUser } from "@clerk/nextjs";
 import { GalleryIcon, PlusCircleIcon, UserIcon } from "../ui/icons";
 import { cn } from "@/lib/utils";
 import { useModalStore } from "@/lib/stores";
+import { useRouter } from "next/navigation";
 
 const tabs = [
   { id: "gallery", label: "Gallery", icon: GalleryIcon, href: "/app" },
@@ -30,16 +31,18 @@ export function BottomNav() {
   };
 
   const activeTab = getActiveTab();
+  const router = useRouter();
 
   const isProtectedRoute = (href: string) => {
     return protectedRoutes.some((route) => href.startsWith(route));
   };
 
   const handleNavigation = (e: React.MouseEvent, href: string) => {
-    // Only intercept if Clerk has loaded and user is not signed in
+    e.preventDefault();
     if (isLoaded && !isSignedIn && isProtectedRoute(href)) {
-      e.preventDefault();
       openSignInModal();
+    } else {
+      router.push(href);
     }
   };
 
