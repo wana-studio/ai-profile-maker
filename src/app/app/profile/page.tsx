@@ -179,7 +179,7 @@ export default function ProfilePage() {
     }
   };
 
-  const { isNative, presentCustomerCenter, presentPaywall } = useIAP({ userId: user?.id });
+  const { isNative, presentCustomerCenter, presentPaywall, subscriptionPending, loading: paywallLoading } = useIAP({ userId: user?.id });
 
   const handleManageSubscription = async () => {
     if (isNative) {
@@ -301,52 +301,81 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className={`p-5 rounded-3xl ${isPro ? "gradient-warm" : "bg-foreground/10 border border-white/10"
+          className={`p-5 rounded-3xl ${subscriptionPending
+            ? "bg-foreground/10 border border-white/10"
+            : isPro
+              ? "gradient-warm"
+              : "bg-foreground/10 border border-white/10"
             }`}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-xl ${isPro ? "bg-white/20" : "gradient-warm"
-                  }`}
-              >
-                <Crown className="w-6 h-6 text-white" />
+          {subscriptionPending ? (
+            // ── Pending: show skeleton while waiting for webhook ──
+            <div className="animate-pulse space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/10" />
+                <div className="space-y-2">
+                  <div className="h-4 w-28 bg-white/10 rounded-full" />
+                  <div className="h-3 w-20 bg-white/10 rounded-full" />
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-white">
-                  {isPro ? "Pro Member" : "Free Plan"}
-                </h3>
-                <p className="text-sm text-white/70">
-                  {isPro
-                    ? "50 generations left"
-                    : `${generationsRemaining} generations left`}
-                </p>
+              <div className="flex items-center justify-center gap-2 py-2 text-white/60">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Activating your subscription…</span>
               </div>
             </div>
-            {isPro && (
-              <Badge className="bg-white/20 text-white border-0">Active</Badge>
-            )}
-          </div>
+          ) : (
+            // ── Normal state ──
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`p-2 rounded-xl ${isPro ? "bg-white/20" : "gradient-warm"
+                      }`}
+                  >
+                    <Crown className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">
+                      {isPro ? "Pro Member" : "Free Plan"}
+                    </h3>
+                    <p className="text-sm text-white/70">
+                      {isPro
+                        ? "50 generations left"
+                        : `${generationsRemaining} generations left`}
+                    </p>
+                  </div>
+                </div>
+                {isPro && (
+                  <Badge className="bg-white/20 text-white border-0">Active</Badge>
+                )}
+              </div>
 
-          {!isPro && (
-            <Button
-              onClick={() => presentPaywall()}
-              className="w-full bg-white text-black hover:bg-white/90 font-semibold"
-            >
-              <Star className="w-4 h-4 mr-2" />
-              Upgrade to Pro
-            </Button>
-          )}
+              {!isPro && (
+                <Button
+                  onClick={() => presentPaywall()}
+                  disabled={paywallLoading}
+                  className="w-full bg-white text-black hover:bg-white/90 font-semibold disabled:opacity-70"
+                >
+                  {paywallLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Star className="w-4 h-4 mr-2" />
+                  )}
+                  {paywallLoading ? "Opening…" : "Upgrade to Pro"}
+                </Button>
+              )}
 
-          {isPro && (
-            <Button
-              variant="ghost"
-              onClick={handleManageSubscription}
-              className="w-full text-white/80 hover:text-white hover:bg-white/10"
-            >
-              <CreditCard className="w-4 h-4 mr-2" />
-              Manage Subscription
-            </Button>
+              {isPro && (
+                <Button
+                  variant="ghost"
+                  onClick={handleManageSubscription}
+                  className="w-full text-white/80 hover:text-white hover:bg-white/10"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Manage Subscription
+                </Button>
+              )}
+            </>
           )}
         </motion.div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { toast } from 'sonner';
+import { useSubscriptionStore } from '@/lib/stores';
 
 // RevenueCat API Keys
 // Native (mobile) key — starts with appl_/goog_/test_
@@ -8,7 +9,9 @@ const RC_NATIVE_API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY || 'test_jD
 // Web Billing key — starts with rcb_ (get from RevenueCat Dashboard → Project Settings → Apps → Web)
 const RC_WEB_API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY || '';
 
-const ENTITLEMENT_ID = 'Selfio Pro'; // The entitlement identifier in RevenueCat dashboard
+const ENTITLEMENT_ID = 'Selfio Pro';
+const POLL_INTERVAL_MS = 2000;
+const POLL_MAX_ATTEMPTS = 15; // 30 seconds total
 
 interface UseIAPOptions {
     /**
@@ -22,12 +25,14 @@ interface UseIAPOptions {
 export function useIAP({ userId }: UseIAPOptions = {}) {
     const [loading, setLoading] = useState(false);
     const [hasPro, setHasPro] = useState(false);
+    const [subscriptionPending, setSubscriptionPending] = useState(false);
     const [isNative] = useState(() => Capacitor.isNativePlatform());
     const initializedRef = useRef(false);
+    const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const { setTier, setGenerationsRemaining } = useSubscriptionStore();
 
     useEffect(() => {
         if (initializedRef.current) return;
-        // Wait until we have userId before initializing, so RC gets the real ID from the start
         if (!userId) return;
 
         initializedRef.current = true;
@@ -35,8 +40,14 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
         if (isNative) {
             initNative(userId);
         }
-        // Web SDK is initialized on-demand in presentPaywall (needs userId too)
     }, [isNative, userId]);
+
+    // Clean up polling on unmount
+    useEffect(() => {
+        return () => {
+            if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+        };
+    }, []);
 
     // ─────────────────────────────────────────────
     // Native (Capacitor) initialization
@@ -45,8 +56,6 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
         try {
             const { Purchases } = await import('@revenuecat/purchases-capacitor');
             await Purchases.configure({ apiKey: RC_NATIVE_API_KEY });
-
-            // Identify the user so webhooks contain the real Clerk user ID
             await Purchases.logIn({ appUserID: uid });
 
             const { customerInfo } = await Purchases.getCustomerInfo();
@@ -69,21 +78,44 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
     };
 
     // ─────────────────────────────────────────────
-    // Sync subscription status with our backend (client-side optimistic update)
-    // NOTE: The authoritative source is the RevenueCat server-side webhook.
-    // This call is just for immediate UI feedback after a purchase.
+    // Poll /api/subscription until tier === 'pro' or timeout
     // ─────────────────────────────────────────────
-    const syncSubscriptionToBackend = async (isPro: boolean) => {
-        try {
-            await fetch('/api/webhooks/revenuecat/sync', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isPro }),
-            });
-        } catch (error) {
-            console.error('Failed to sync subscription to backend:', error);
+    const pollUntilPro = useCallback((attempt = 0) => {
+        if (attempt >= POLL_MAX_ATTEMPTS) {
+            setSubscriptionPending(false);
+            toast.info("Subscription is processing — it may take a moment to reflect.");
+            return;
         }
-    };
+
+        pollTimerRef.current = setTimeout(async () => {
+            try {
+                const res = await fetch('/api/subscription');
+                const data = await res.json();
+
+                if (data.tier === 'pro') {
+                    // Webhook has landed — update store directly, no reload needed
+                    setTier('pro');
+                    setGenerationsRemaining(data.generationsRemaining === Infinity ? 999 : (data.generationsRemaining ?? 50));
+                    setHasPro(true);
+                    setSubscriptionPending(false);
+                    toast.success('You\'re now on Pro! 🎉');
+                } else {
+                    // Not yet — try again
+                    pollUntilPro(attempt + 1);
+                }
+            } catch {
+                pollUntilPro(attempt + 1);
+            }
+        }, POLL_INTERVAL_MS);
+    }, [setTier, setGenerationsRemaining]);
+
+    // ─────────────────────────────────────────────
+    // After a successful purchase: start polling
+    // ─────────────────────────────────────────────
+    const onPurchaseSuccess = useCallback(() => {
+        setSubscriptionPending(true);
+        pollUntilPro(0);
+    }, [pollUntilPro]);
 
     // ─────────────────────────────────────────────
     // Present Paywall (works on both web and native)
@@ -109,13 +141,10 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
                 displayCloseButton: true,
             });
 
-            // Check result by casting (enum from capacitor-ui)
             if ((paywallResult as any) === "PURCHASED" || (paywallResult as any) === "RESTORED") {
                 const { customerInfo } = await Purchases.getCustomerInfo();
                 updateProStatus(customerInfo);
-                await syncSubscriptionToBackend(true);
-                toast.success('Subscription activated!');
-                window.location.reload();
+                onPurchaseSuccess();
             }
         } catch (error: any) {
             if (!error?.userCancelled) {
@@ -138,20 +167,14 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
             setLoading(true);
             const { Purchases } = await import('@revenuecat/purchases-js');
 
-            // Use the Clerk userId as the RC appUserId — webhooks will contain this ID
             const purchases = Purchases.configure({ apiKey: RC_WEB_API_KEY, appUserId: userId });
-
             const result = await purchases.presentPaywall({});
 
-            // result is PaywallPurchaseResult with customerInfo
             if (result?.customerInfo) {
                 updateProStatus(result.customerInfo);
-                await syncSubscriptionToBackend(true);
-                toast.success('Subscription activated!');
-                window.location.reload();
+                onPurchaseSuccess();
             }
         } catch (error: any) {
-            // UserCancelledError means user closed the paywall — don't show error
             if (error?.errorCode !== 'UserCancelledError' && error?.code !== 'UserCancelledError') {
                 console.error("Web paywall error:", error);
             }
@@ -172,11 +195,8 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
                 console.error("Customer Center error:", error);
             }
         } else {
-            // On web, redirect to Stripe portal as fallback
             try {
-                const res = await fetch("/api/create-portal-session", {
-                    method: "POST",
-                });
+                const res = await fetch("/api/create-portal-session", { method: "POST" });
                 const data = await res.json();
                 if (data.url) {
                     window.location.href = data.url;
@@ -201,9 +221,7 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
             const { customerInfo } = await Purchases.restorePurchases();
             updateProStatus(customerInfo);
             if (customerInfo?.entitlements?.active?.[ENTITLEMENT_ID]) {
-                toast.success('Purchases restored!');
-                await syncSubscriptionToBackend(true);
-                window.location.reload();
+                onPurchaseSuccess();
             } else {
                 toast.info('No active subscription found to restore.');
             }
@@ -212,16 +230,16 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
         } finally {
             setLoading(false);
         }
-    }, [isNative]);
+    }, [isNative, onPurchaseSuccess]);
 
     return {
         isNative,
         loading,
         hasPro,
+        subscriptionPending,
         presentPaywall,
         presentCustomerCenter,
         restorePurchases,
-        // Legacy alias
         purchase: presentPaywall,
     };
 }
