@@ -13,6 +13,27 @@ const ENTITLEMENT_ID = 'Selfio Pro';
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_ATTEMPTS = 15; // 30 seconds total
 
+// Maps RevenueCat / Stripe error codes to user-friendly messages
+function getPaymentErrorMessage(error: any): string {
+    const code = error?.errorCode ?? error?.code ?? '';
+    const msg = (error?.message ?? '').toLowerCase();
+
+    if (msg.includes('already') || code === 'AlreadyPurchasedError') {
+        return 'You already have an active subscription.';
+    }
+    if (msg.includes('network') || code === 'NetworkError') {
+        return 'Network error. Please check your connection and try again.';
+    }
+    if (msg.includes('declined') || msg.includes('card') || code === 'ErrorChargingPayment') {
+        return 'Payment failed. Please check your card details and try again.';
+    }
+    if (msg.includes('not eligible') || msg.includes('ineligible')) {
+        return 'Your account is not eligible for this offer.';
+    }
+    return 'Something went wrong. Please try again.';
+}
+
+
 interface UseIAPOptions {
     /**
      * The authenticated user's ID (Clerk userId).
@@ -146,9 +167,16 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
                 updateProStatus(customerInfo);
                 onPurchaseSuccess();
             }
+            // "NOT_PRESENTED" or "ERROR" come through as a non-throw result — handle them gracefully
         } catch (error: any) {
-            if (!error?.userCancelled) {
+            // RC capacitor surfaces cancellations as errors with code 1 (UserCancelled)
+            const isCancelled =
+                error?.code === 1 ||
+                error?.errorCode === 1 ||
+                error?.message?.toLowerCase().includes('cancel');
+            if (!isCancelled) {
                 console.error("Native paywall error:", error);
+                toast.error(getPaymentErrorMessage(error));
             }
         } finally {
             setLoading(false);
@@ -175,8 +203,14 @@ export function useIAP({ userId }: UseIAPOptions = {}) {
                 onPurchaseSuccess();
             }
         } catch (error: any) {
-            if (error?.errorCode !== 'UserCancelledError' && error?.code !== 'UserCancelledError') {
+            // purchases-js throws a PurchasesError with errorCode 'UserCancelledError' on dismiss
+            const isCancelled =
+                error?.errorCode === 'UserCancelledError' ||
+                error?.code === 'UserCancelledError' ||
+                error?.message?.toLowerCase().includes('cancel');
+            if (!isCancelled) {
                 console.error("Web paywall error:", error);
+                toast.error(getPaymentErrorMessage(error));
             }
         } finally {
             setLoading(false);
