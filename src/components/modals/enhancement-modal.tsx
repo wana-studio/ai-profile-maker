@@ -5,6 +5,7 @@ import { X, Shirt, Sparkles, Sun, Zap, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useModalStore, useSubscriptionStore } from '@/lib/stores';
 import { useIAP } from '@/hooks/use-iap';
+import { useUser } from '@clerk/nextjs';
 
 const enhancementOptions = [
     {
@@ -44,7 +45,8 @@ interface EnhancementModalProps {
 export function EnhancementModal({ onEnhance }: EnhancementModalProps) {
     const { isEnhancementModalOpen, closeEnhancementModal, selectedPhotoForEnhancement } = useModalStore();
     const { tier } = useSubscriptionStore();
-    const { presentPaywall } = useIAP();
+    const { user } = useUser();
+    const { presentPaywall } = useIAP({ userId: user?.id });
     const isPro = tier === 'pro';
 
     const handleEnhanceClick = (optionId: string, isPremium: boolean) => {

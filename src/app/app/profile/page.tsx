@@ -179,7 +179,7 @@ export default function ProfilePage() {
     }
   };
 
-  const { isNative, presentCustomerCenter, presentPaywall } = useIAP();
+  const { isNative, presentCustomerCenter, presentPaywall } = useIAP({ userId: user?.id });
 
   const handleManageSubscription = async () => {
     if (isNative) {

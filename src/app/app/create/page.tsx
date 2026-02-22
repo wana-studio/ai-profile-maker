@@ -23,10 +23,10 @@ const stepTitles = ["Face", "Choose Your Style", "Adjust the vibe", "Generate"];
 
 export default function CreatePage() {
   const router = useRouter();
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
   const { tier } = useSubscriptionStore();
   const { profiles, setProfiles } = useFaceProfilesStore();
-  const { presentPaywall } = useIAP();
+  const { presentPaywall } = useIAP({ userId: user?.id });
   const posthog = usePostHog();
   const {
     step,

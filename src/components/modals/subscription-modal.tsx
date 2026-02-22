@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useModalStore, useSubscriptionStore } from "@/lib/stores";
 import { trackEvent, usePostHog } from "@/lib/posthog";
 import { useIAP } from "@/hooks/use-iap";
+import { useUser } from "@clerk/nextjs";
 
 const proFeatures = [
   {
@@ -35,7 +36,8 @@ export function SubscriptionModal() {
   const { isSubscriptionModalOpen, closeSubscriptionModal } = useModalStore();
   const { tier, generationsRemaining } = useSubscriptionStore();
   const posthog = usePostHog();
-  const { purchase, presentPaywall, isNative, loading: iapLoading } = useIAP();
+  const { user } = useUser();
+  const { purchase, presentPaywall, isNative, loading: iapLoading } = useIAP({ userId: user?.id });
   const [isLoading, setIsLoading] = useState(false);
 
   // Track modal opened

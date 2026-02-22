@@ -10,7 +10,16 @@ const RC_WEB_API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY || '';
 
 const ENTITLEMENT_ID = 'Selfio Pro'; // The entitlement identifier in RevenueCat dashboard
 
-export function useIAP() {
+interface UseIAPOptions {
+    /**
+     * The authenticated user's ID (Clerk userId).
+     * Pass this so RevenueCat uses the real user ID instead of an anonymous ID.
+     * Webhooks will then include this ID, allowing the backend to look up the correct user.
+     */
+    userId?: string | null;
+}
+
+export function useIAP({ userId }: UseIAPOptions = {}) {
     const [loading, setLoading] = useState(false);
     const [hasPro, setHasPro] = useState(false);
     const [isNative] = useState(() => Capacitor.isNativePlatform());
@@ -18,21 +27,27 @@ export function useIAP() {
 
     useEffect(() => {
         if (initializedRef.current) return;
+        // Wait until we have userId before initializing, so RC gets the real ID from the start
+        if (!userId) return;
+
         initializedRef.current = true;
 
         if (isNative) {
-            initNative();
+            initNative(userId);
         }
-        // Web SDK is initialized on-demand in presentPaywall
-    }, [isNative]);
+        // Web SDK is initialized on-demand in presentPaywall (needs userId too)
+    }, [isNative, userId]);
 
     // ─────────────────────────────────────────────
     // Native (Capacitor) initialization
     // ─────────────────────────────────────────────
-    const initNative = async () => {
+    const initNative = async (uid: string) => {
         try {
             const { Purchases } = await import('@revenuecat/purchases-capacitor');
             await Purchases.configure({ apiKey: RC_NATIVE_API_KEY });
+
+            // Identify the user so webhooks contain the real Clerk user ID
+            await Purchases.logIn({ appUserID: uid });
 
             const { customerInfo } = await Purchases.getCustomerInfo();
             updateProStatus(customerInfo);
@@ -49,13 +64,14 @@ export function useIAP() {
     // Unified pro status check
     // ─────────────────────────────────────────────
     const updateProStatus = (customerInfo: any) => {
-        const isPro = typeof customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] !== 'undefined'
-            && customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] !== undefined;
+        const isPro = !!customerInfo?.entitlements?.active?.[ENTITLEMENT_ID];
         setHasPro(isPro);
     };
 
     // ─────────────────────────────────────────────
-    // Sync subscription status with our backend
+    // Sync subscription status with our backend (client-side optimistic update)
+    // NOTE: The authoritative source is the RevenueCat server-side webhook.
+    // This call is just for immediate UI feedback after a purchase.
     // ─────────────────────────────────────────────
     const syncSubscriptionToBackend = async (isPro: boolean) => {
         try {
@@ -78,7 +94,7 @@ export function useIAP() {
         } else {
             return presentWebPaywall();
         }
-    }, [isNative]);
+    }, [isNative, userId]);
 
     // ─────────────────────────────────────────────
     // Native Paywall (RevenueCatUI)
@@ -114,20 +130,16 @@ export function useIAP() {
     // Web Paywall (purchases-js)
     // ─────────────────────────────────────────────
     const presentWebPaywall = async () => {
+        if (!userId) {
+            toast.error('Please sign in to subscribe');
+            return;
+        }
         try {
             setLoading(true);
             const { Purchases } = await import('@revenuecat/purchases-js');
 
-            // purchases-js requires an appUserId. We use $RCAnonymousID or Clerk user ID.
-            // For simplicity, configure with a generated anonymous ID.
-            // In production, you should use the Clerk user ID for cross-platform consistency.
-            let appUserId = localStorage.getItem('rc_app_user_id');
-            if (!appUserId) {
-                appUserId = `web_${crypto.randomUUID()}`;
-                localStorage.setItem('rc_app_user_id', appUserId);
-            }
-
-            const purchases = Purchases.configure({ apiKey: RC_WEB_API_KEY, appUserId });
+            // Use the Clerk userId as the RC appUserId — webhooks will contain this ID
+            const purchases = Purchases.configure({ apiKey: RC_WEB_API_KEY, appUserId: userId });
 
             const result = await purchases.presentPaywall({});
 
@@ -160,8 +172,7 @@ export function useIAP() {
                 console.error("Customer Center error:", error);
             }
         } else {
-            // On web, redirect to Stripe portal as fallback 
-            // (RevenueCat web doesn't have a Customer Center yet)
+            // On web, redirect to Stripe portal as fallback
             try {
                 const res = await fetch("/api/create-portal-session", {
                     method: "POST",
