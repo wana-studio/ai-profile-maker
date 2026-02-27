@@ -197,7 +197,8 @@ export default function ProfilePage() {
       const data = await res.json();
 
       if (data.url) {
-        window.location.href = data.url;
+        // Open in new tab so browser Back from the portal doesn’t 404 (portal uses redirects)
+        window.open(data.url, "_blank", "noopener,noreferrer");
       } else {
         throw new Error("Failed to create portal session");
       }
